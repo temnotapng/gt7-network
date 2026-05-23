@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GT7 Driver Network | Live Edition</title>
+    <title>GT7 Driver Network | Ultra UI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Oswald:wght@500;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --cyber-dark: #04060f;
-            --panel-bg: rgba(10, 15, 28, 0.75);
-            --neon-red: #ff0055;
+            --cyber-dark: #02040a;
+            --panel-bg: rgba(6, 10, 24, 0.65);
+            --neon-red: #ff004c;
             --neon-cyan: #00f0ff;
+            --neon-glow: rgba(0, 240, 255, 0.3);
             --text-white: #ffffff;
             --text-gray: #94a3b8;
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             color: var(--text-white);
             margin: 0;
             display: flex;
@@ -24,81 +26,91 @@
             overflow-x: hidden;
         }
 
-        /* КИНЕМАТОГРАФИЧНЫЙ ЖИВОЙ ФОН НА ЧИСТОМ CSS */
+        /* ЖИВОЙ НЕОНОВЫЙ РАССВЕТ */
         .live-background {
             position: fixed;
             top: 0; left: 0;
             width: 100vw; height: 100vh;
             z-index: -1;
-            /* Настоящий градиент гоночного рассвета: космос -> фиолетовый -> розовый -> оранжевый */
             background: linear-gradient(180deg, 
-                #060913 0%, 
-                #1a103c 40%, 
-                #6b114d 70%, 
-                #ff2a5f 90%, 
-                #ff7e40 100%);
+                #040612 0%, 
+                #130b2e 35%, 
+                #4c0b3b 65%, 
+                #cc003f 88%, 
+                #ff6224 100%);
             background-size: 100% 200%;
-            /* Плавное движение неба, как будто солнце медленно встаёт */
             animation: slowSunrise 12s ease-in-out infinite alternate;
         }
 
         @keyframes slowSunrise {
             0% { background-position: 0% 0%; }
-            100% { background-position: 0% 100%; filter: saturate(1.2); }
+            100% { background-position: 0% 100%; filter: saturate(1.1); }
         }
 
-        /* Боковая панель (Стекло / Blur) */
+        /* БОКОВОЕ МЕНЮ (СПОРТИВНЫЙ СТИЛЬ) */
         nav {
-            width: 260px;
-            background: rgba(6, 9, 18, 0.85);
+            width: 280px;
+            background: rgba(3, 5, 13, 0.9);
             height: 100vh;
             position: fixed;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 30px 20px;
+            border-right: 2px solid rgba(255, 255, 255, 0.03);
+            padding: 40px 20px;
             box-sizing: border-box;
             z-index: 10;
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
+            box-shadow: 10px 0 40px rgba(0,0,0,0.5);
         }
 
         .logo {
-            font-size: 1.4em;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3em;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 50px;
-            border-left: 5px solid var(--neon-red);
-            padding-left: 12px;
-            text-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+            letter-spacing: 2px;
+            margin-bottom: 60px;
+            border-left: 6px solid var(--neon-red);
+            padding-left: 14px;
+            text-shadow: 0 0 20px rgba(255, 0, 76, 0.6);
+            transform: skewX(-10deg);
         }
 
         .nav-links a {
             display: block;
+            font-family: 'Oswald', sans-serif;
             color: var(--text-gray);
             text-decoration: none;
-            padding: 14px 15px;
-            margin-bottom: 8px;
-            border-radius: 6px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            border-radius: 4px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.85em;
-            transition: all 0.3s;
+            letter-spacing: 1.5px;
+            font-size: 0.95em;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             border: 1px solid transparent;
+            transform: skewX(-10deg); /* Эффект скорости */
+        }
+
+        /* Текст внутри скошенных кнопок выравниваем обратно, чтобы читался ровно */
+        .nav-links a span {
+            display: inline-block;
+            transform: skewX(10deg);
         }
 
         .nav-links a:hover, .nav-links a.active {
-            background: rgba(0, 240, 255, 0.08);
+            background: linear-gradient(90deg, rgba(0, 240, 255, 0.15) 0%, transparent 100%);
             color: var(--neon-cyan);
-            border: 1px solid rgba(0, 240, 255, 0.2);
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+            border-left: 4px solid var(--neon-cyan);
+            padding-left: 24px;
+            box-shadow: -5px 0 20px rgba(0, 240, 255, 0.15);
         }
 
-        /* Контентная зона */
+        /* ОСНОВНОЙ КОНТЕНТ */
         main {
-            margin-left: 260px;
-            padding: 40px;
-            width: calc(100% - 260px);
+            margin-left: 280px;
+            padding: 50px;
+            width: calc(100% - 280px);
             box-sizing: border-box;
         }
 
@@ -108,115 +120,155 @@
         .dashboard-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
-            gap: 30px;
+            gap: 35px;
         }
 
-        @media (max-width: 1000px) {
+        @media (max-width: 1100px) {
             .dashboard-grid { grid-template-columns: 1fr; }
         }
 
-        /* Панели интерфейса */
+        /* ТЕХНОЛОГИЧНЫЕ ПАНЕЛИ И КАРТОЧКИ */
         .form-panel, .post-card, .champ-card {
             background: var(--panel-bg);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-left: 4px solid var(--neon-cyan);
-            border-radius: 4px 12px 4px 4px;
-            padding: 25px;
-            margin-bottom: 25px;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-            transition: transform 0.2s, border-color 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 3px solid var(--neon-cyan);
+            border-radius: 4px 16px 4px 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(20px);
+            box-shadow: inset 0 0 20px rgba(255,255,255,0.02), 0 20px 40px rgba(0,0,0,0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .form-panel { border-left-color: var(--neon-red); }
+        .form-panel { border-top-color: var(--neon-red); }
 
         .post-card:hover, .champ-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--neon-cyan);
-            background: rgba(14, 21, 38, 0.85);
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(0, 240, 255, 0.3);
+            box-shadow: 0 25px 50px rgba(0, 240, 255, 0.1);
         }
 
-        /* Карточка профиля в лобби */
+        /* ЛИЦЕНЗИЯ ПИЛОТА (СПРАВА) */
         .pilot-profile-card {
-            background: rgba(6, 9, 18, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            padding: 25px 20px;
+            background: rgba(4, 7, 20, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 35px 25px;
             text-align: center;
             position: sticky;
-            top: 40px;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            top: 50px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
         }
 
         .pilot-profile-card::before {
             content: 'ONLINE';
             position: absolute;
-            top: -10px; left: 50%;
-            transform: translateX(-50%);
+            top: -12px; left: 50%;
+            transform: translateX(-50%) skewX(-10deg);
             background: #00ff66;
             color: #000;
-            font-size: 0.65em;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7em;
             font-weight: 900;
-            padding: 2px 10px;
-            border-radius: 10px;
-            letter-spacing: 1px;
+            padding: 4px 16px;
+            border-radius: 2px;
+            letter-spacing: 1.5px;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
         }
 
         .avatar {
-            width: 75px; height: 75px; 
-            background: #151d30; border-radius: 50%;
-            margin: 15px auto; border: 2px solid var(--neon-cyan);
+            width: 85px; height: 85px; 
+            background: linear-gradient(135deg, #101726 0%, #1e293b 100%); 
+            border-radius: 50%;
+            margin: 20px auto; 
+            border: 3px solid var(--neon-cyan);
             display: flex; align-items: center; justify-content: center; 
-            font-weight: 900; font-size: 1.4em; color: var(--neon-cyan);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900; font-size: 1.6em; color: var(--neon-cyan);
+            box-shadow: 0 0 25px var(--neon-glow);
         }
 
         .badge {
-            display: inline-block; padding: 4px 10px; border-radius: 4px;
-            font-size: 0.8em; font-weight: 800; margin: 5px; 
-            background: #04060f; font-family: monospace;
+            display: inline-block; padding: 6px 14px; border-radius: 4px;
+            font-size: 0.85em; font-weight: 900; margin: 6px; 
+            background: #02040a; font-family: 'Orbitron', sans-serif;
+            transform: skewX(-10deg);
         }
         .badge.dr { color: #ffbc00; border: 1px solid #ffbc00; }
         .badge.sr { color: var(--neon-cyan); border: 1px solid var(--neon-cyan); }
 
-        /* Ввод данных */
-        h2, h3, h4 { text-transform: uppercase; letter-spacing: 1px; margin-top: 0; }
-        label { display: block; font-size: 0.8em; text-transform: uppercase; color: var(--text-gray); margin-bottom: 6px; font-weight: 700; }
+        /* ЗАГОЛОВКИ И ИНПУТЫ */
+        h2, h3, h4 { 
+            font-family: 'Oswald', sans-serif; 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px; 
+            margin-top: 0; 
+        }
+        
+        h2 { font-size: 1.8em; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 10px; margin-bottom: 30px;}
+
+        label { 
+            display: block; font-size: 0.75em; text-transform: uppercase; 
+            color: var(--text-gray); margin-bottom: 8px; font-weight: 800; 
+            letter-spacing: 1px;
+        }
 
         input, textarea, select {
-            width: 100%; padding: 12px; background-color: rgba(4, 6, 15, 0.8);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; 
-            color: white; font-size: 0.95em; box-sizing: border-box; margin-bottom: 20px; 
-            font-family: inherit; transition: border-color 0.2s;
+            width: 100%; padding: 14px; background-color: rgba(2, 4, 10, 0.7);
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; 
+            color: white; font-size: 0.95em; box-sizing: border-box; margin-bottom: 25px; 
+            font-family: inherit; transition: all 0.2s;
         }
-        input:focus, textarea:focus, select:focus { border-color: var(--neon-cyan); outline: none; }
+        input:focus, textarea:focus, select:focus { 
+            border-color: var(--neon-cyan); 
+            outline: none; 
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+            background-color: rgba(2, 4, 10, 0.9);
+        }
 
+        /* КНОПКА ГОНКИ */
         .btn-action {
-            background: var(--neon-red); color: white; border: none;
-            padding: 14px 24px; font-weight: 800; text-transform: uppercase;
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, var(--neon-red) 0%, #b30035 100%); 
+            color: white; border: none;
+            padding: 16px 30px; font-weight: 900; text-transform: uppercase;
             border-radius: 4px; cursor: pointer; width: 100%; 
-            letter-spacing: 1px; transition: all 0.2s;
+            letter-spacing: 2px; transition: all 0.25s;
+            transform: skewX(-10deg);
+            box-shadow: 0 5px 20px rgba(255, 0, 76, 0.3);
         }
-        .btn-action:hover { filter: brightness(1.2); }
-        .btn-action:disabled { background: #161d30; color: var(--text-gray); cursor: not-allowed; }
+        .btn-action:hover { 
+            filter: brightness(1.2);
+            box-shadow: 0 5px 25px rgba(255, 0, 76, 0.5);
+            transform: skewX(-10deg) translateY(-1px);
+        }
+        .btn-action:disabled { background: #1e293b; color: var(--text-gray); cursor: not-allowed; box-shadow: none; transform: skewX(-10deg); }
 
-        /* Лента и теги */
+        /* КАРТОЧКИ ЛОББИ */
         .feed-container { display: flex; flex-direction: column; gap: 20px; }
-        .post-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .post-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
         .post-avatar {
-            width: 42px; height: 42px; background: #151d30; border-radius: 50%;
+            width: 46px; height: 46px; background: #0c1220; border-radius: 50%;
             display: flex; align-items: center; justify-content: center; 
-            border: 1px solid var(--neon-cyan); font-weight: 800; color: var(--neon-cyan);
+            border: 2px solid var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-weight: 900; color: var(--neon-cyan);
         }
-        .post-meta h4 { margin: 0; font-size: 1em; }
+        .post-meta h4 { margin: 0; font-size: 1.1em; letter-spacing: 1px; }
         .post-meta span { font-size: 0.75em; color: var(--text-gray); }
-        .post-track { color: var(--neon-cyan); font-weight: 800; text-transform: uppercase; font-size: 1.1em; margin-bottom: 8px; }
-        .post-content { color: #e2e8f0; line-height: 1.5; }
         
-        .pilot-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .post-track { 
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-cyan); font-weight: 900; text-transform: uppercase; 
+            font-size: 1.2em; margin-bottom: 12px;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+        }
+        .post-content { color: #cbd5e1; line-height: 1.6; font-size: 0.95em; }
+        
+        .pilot-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
         .pilot-tag {
-            background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.3);
-            color: #fff; padding: 5px 12px; border-radius: 4px; font-size: 0.8em; font-family: monospace;
+            background: rgba(0, 240, 255, 0.06); border: 1px solid rgba(0, 240, 255, 0.25);
+            color: #fff; padding: 6px 14px; border-radius: 4px; font-size: 0.8em; font-family: monospace;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -227,9 +279,9 @@
     <nav>
         <div class="logo">GT7 Network</div>
         <div class="nav-links">
-            <a class="active" onclick="switchTab(this, 'tab-lobbies')">🏎 Лобби-хаб</a>
-            <a onclick="switchTab(this, 'tab-pilots')">👥 Мой Профиль</a>
-            <a onclick="switchTab(this, 'tab-championships')">🏆 Чемпионаты</a>
+            <a class="active" onclick="switchTab(this, 'tab-lobbies')"><span>🏎 Лобби-хаб</span></a>
+            <a onclick="switchTab(this, 'tab-pilots')"><span>👥 Мой Профиль</span></a>
+            <a onclick="switchTab(this, 'tab-championships')"><span>🏆 Чемпионаты</span></a>
         </div>
     </nav>
 
@@ -244,7 +296,7 @@
                             <label>Трасса / Класс машин</label>
                             <input type="text" id="trackInput" placeholder="Напр: Nürburgring Nordschleife | Gr.3" required>
                             <label>Параметры и регламент заезда</label>
-                            <textarea id="detailsInput" placeholder="Укажите время старта, ID комнаты, настройки износа шин и правила..." style="height:90px; resize:none;" required></textarea>
+                            <textarea id="detailsInput" placeholder="Укажите время старта, ID комнаты, настройки износа шин и правила..." style="height:100px; resize:none;" required></textarea>
                             <button type="submit" class="btn-action">Опубликовать заезд</button>
                         </form>
                     </div>
@@ -254,8 +306,8 @@
                 <div>
                     <div class="pilot-profile-card">
                         <div class="avatar" id="sideAvatar">--</div>
-                        <h3 id="sideName" style="margin: 10px 0 5px 0;">Синхронизация...</h3>
-                        <p id="sideCar" style="color: var(--text-gray); margin: 0 0 15px 0; font-size: 0.85em;">Машина не выбрана</p>
+                        <h3 id="sideName" style="margin: 10px 0 5px 0; font-family: 'Orbitron', sans-serif;">Синхронизация...</h3>
+                        <p id="sideCar" style="color: var(--text-gray); margin: 0 0 20px 0; font-size: 0.85em; font-weight: 600;">Машина не выбрана</p>
                         <div>
                             <span class="badge dr" id="sideDR">DR: --</span>
                             <span class="badge sr" id="sideSR">SR: --</span>
@@ -298,7 +350,7 @@
                                 </select>
                             </div>
                         </div>
-                        <button type="submit" class="btn-action" style="background: var(--neon-cyan); color: #04060f;">Сохранить изменения</button>
+                        <button type="submit" class="btn-action" style="background: linear-gradient(135deg, var(--neon-cyan) 0%, #00a2b0 100%); color: #02040a;">Сохранить изменения</button>
                     </form>
                 </div>
             </div>
@@ -312,15 +364,15 @@
     </main>
 
 <script>
-    // 1. СИСТЕМА ВКЛАДОК
+    // СИСТЕМА ВКЛАДОК
     function switchTab(element, tabId) {
         document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
-        element.classList.add('active');
+        element.closest('a').classList.add('active');
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
     }
 
-    // 2. ДАННЫЕ ПРОФИЛЯ С ХРАНИЛИЩЕМ
+    // ДАННЫЕ ПРОФИЛЯ
     let userProfile = JSON.parse(localStorage.getItem('gt7_live_profile')) || {
         username: 'Fast_Pilot',
         car: 'Toyota GR Supra GT3',
@@ -356,7 +408,7 @@
         alert('Данные вашей лицензии успешно обновлены!');
     });
 
-    // 3. УСТОЙЧИВАЯ СИСТЕМА ТУРНИРОВ
+    // ТУРНИРЫ
     const defaultTournaments = [
         {
             id: 'nurb_endurance_2026',
@@ -388,16 +440,16 @@
             const card = document.createElement('div');
             card.className = 'champ-card';
             card.innerHTML = `
-                <span style="color: ${isRegistered ? 'var(--neon-cyan)' : 'var(--neon-red)'}; font-weight: 800; font-size: 0.8em; letter-spacing: 1px;">
+                <span style="color: ${isRegistered ? 'var(--neon-cyan)' : 'var(--neon-red)'}; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 0.75em; letter-spacing: 1.5px;">
                     ${isRegistered ? '✓ ВЫ ЗАРЕГИСТРИРОВАНЫ' : tour.status}
                 </span>
-                <h3 style="margin: 8px 0 10px 0; color: #fff;">${tour.title}</h3>
-                <p style="color: var(--text-gray); font-size: 0.9em; line-height:1.5;">${tour.desc}</p>
+                <h3 style="margin: 10px 0 12px 0; color: #fff; font-size: 1.4em;">${tour.title}</h3>
+                <p style="color: var(--text-gray); font-size: 0.95em; line-height:1.6;">${tour.desc}</p>
                 
-                <h4 style="margin: 18px 0 8px 0; font-size:0.8em; color: var(--neon-cyan); text-transform: uppercase;">Заявленные пилоты (${tour.pilots.length}):</h4>
+                <h4 style="margin: 22px 0 10px 0; font-size:0.75em; color: var(--neon-cyan); text-transform: uppercase; font-family: 'Orbitron', sans-serif;">Заявленные пилоты (${tour.pilots.length}):</h4>
                 <div class="pilot-list">${pilotsHtml}</div>
                 
-                <button class="btn-action" style="margin-top: 25px; background: ${isRegistered ? 'rgba(255,255,255,0.05)' : 'var(--neon-red)'}" 
+                <button class="btn-action" style="margin-top: 30px; background: ${isRegistered ? 'rgba(255,255,255,0.03)' : 'linear-gradient(135deg, var(--neon-red) 0%, #b30035 100%)'}" 
                         onclick="registerToTournament('${tour.id}')" ${isRegistered ? 'disabled' : ''}>
                     ${isRegistered ? 'Вы в стартовом листе' : 'Подать заявку на участие'}
                 </button>
@@ -415,7 +467,7 @@
         }
     }
 
-    // 4. ЛЕНТА ЛОББИ ХАБА
+    // ЛЕНТА ЛОББИ
     const postForm = document.getElementById('socialPostForm');
     const feedContainer = document.getElementById('feed');
     let socialPosts = JSON.parse(localStorage.getItem('gt7_live_posts')) || [];
@@ -431,7 +483,7 @@
                 <div class="post-header">
                     <div class="post-avatar">${post.author.substring(0,2).toUpperCase()}</div>
                     <div class="post-meta">
-                        <h4>${escapeHtml(post.author)} <span style="color:#ffbc00;">[${post.dr}/${post.sr}]</span></h4>
+                        <h4>${escapeHtml(post.author)} <span style="color:#ffbc00; font-family: 'Orbitron', sans-serif; font-size: 0.8em;">[${post.dr}/${post.sr}]</span></h4>
                         <span>${post.time}</span>
                     </div>
                 </div>
@@ -442,7 +494,7 @@
         });
 
         if(socialPosts.length === 0) {
-            feedContainer.innerHTML = '<p style="color: var(--text-gray); font-style: italic; text-align: center; padding: 30px;">Сейчас открытых комнат нет. Будь первым — создай лобби!</p>';
+            feedContainer.innerHTML = '<p style="color: var(--text-gray); font-style: italic; text-align: center; padding: 40px; font-size: 0.95em;">Сейчас открытых комнат нет. Будь первым — создай лобби!</p>';
         }
     }
 
@@ -470,7 +522,6 @@
         return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    // Инициализация системы при старте
     updateProfileUI();
     renderFeed();
     renderChampionships();
