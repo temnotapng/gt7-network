@@ -34,7 +34,22 @@
             width: 100vw; height: 100vh;
             z-index: -1;
             background: url('https://images.unsplash.com/photo-1542282088-fe8426682b8f?q=80&w=2070') center center / cover no-repeat;
-            filter: brightness(0.45) saturate(1.1);
+            /* Анимация изменения общей яркости окружения при вспышке фар */
+            animation: environmentLight 10s infinite;
+        }
+
+        /* ИМПУЛЬСНЫЙ СИГНАЛ ФАР (Двойное гоночное моргание) */
+        .track-background::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            /* Точечное свечение прямо на линзе фары Porsche */
+            background: radial-gradient(circle at 50% 82%, rgba(56, 189, 248, 0.8) 0%, rgba(56, 189, 248, 0.2) 25%, transparent 55%);
+            opacity: 0;
+            mix-blend-mode: screen;
+            animation: headlightFlash 10s infinite;
+            pointer-events: none;
+            z-index: 1;
         }
 
         /* Атмосферный утренний туман поверх фото */
@@ -44,6 +59,20 @@
             bottom: 0; left: 0; width: 100%; height: 60vh;
             background: linear-gradient(0deg, rgba(6, 7, 9, 0.9) 0%, rgba(20, 15, 30, 0.4) 50%, transparent 100%);
             pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Тайминги для двойного моргания (Pass Light) каждые 10 секунд */
+        @keyframes environmentLight {
+            0%, 70%, 74%, 78%, 82%, 100% { filter: brightness(0.42) saturate(1.1); }
+            71%, 73% { filter: brightness(0.55) saturate(1.2); } /* Вспышка 1: окружение светлеет */
+            79%, 81% { filter: brightness(0.55) saturate(1.2); } /* Вспышка 2: окружение светлеет */
+        }
+
+        @keyframes headlightFlash {
+            0%, 70%, 74%, 78%, 82%, 100% { opacity: 0; }
+            71%, 73% { opacity: 1; } /* Вспышка 1 */
+            79%, 81% { opacity: 1; } /* Вспышка 2 */
         }
 
         /* БОКОВАЯ ПАНЕЛЬ НАВИГАЦИИ */
@@ -108,6 +137,7 @@
             width: calc(100% - 280px);
             box-sizing: border-box;
             z-index: 2;
+            position: relative;
         }
 
         .tab-content { display: none; }
