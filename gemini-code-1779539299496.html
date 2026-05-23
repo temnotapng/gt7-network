@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GT7 Driver Network | Live Edition</title>
+    <style>
+        :root {
+            --cyber-dark: #04060f;
+            --panel-bg: rgba(10, 15, 28, 0.75);
+            --neon-red: #ff0055;
+            --neon-cyan: #00f0ff;
+            --text-white: #ffffff;
+            --text-gray: #94a3b8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-white);
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+            background-color: var(--cyber-dark);
+            overflow-x: hidden;
+        }
+
+        /* КИНЕМАТОГРАФИЧНЫЙ ЖИВОЙ ФОН */
+        .live-background {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -1;
+            /* Качественное фото гоночного трека на рассвете */
+            background: url('https://images.unsplash.com/photo-1617469167446-85e3d4865921?auto=format&fit=crop&w=1920&q=80') no-repeat center center;
+            background-size: cover;
+        }
+
+        /* Эффект живого рассветного солнца и стелющегося утреннего тумана */
+        .live-background::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(255, 115, 0, 0.15), transparent 60%),
+                        linear-gradient(to top, rgba(4, 6, 15, 0.9), rgba(4, 6, 15, 0.3));
+            animation: sunrisePulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes sunrisePulse {
+            0% { opacity: 0.7; filter: hue-rotate(0deg); }
+            100% { opacity: 1; filter: hue-rotate(10deg); }
+        }
+
+        /* Боковая панель (Стекло / Blur) */
+        nav {
+            width: 260px;
+            background: rgba(6, 9, 18, 0.85);
+            height: 100vh;
+            position: fixed;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 30px 20px;
+            box-sizing: border-box;
+            z-index: 10;
+            backdrop-filter: blur(20px);
+        }
+
+        .logo {
+            font-size: 1.4em;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 50px;
+            border-left: 5px solid var(--neon-red);
+            padding-left: 12px;
+            text-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+        }
+
+        .nav-links a {
+            display: block;
+            color: var(--text-gray);
+            text-decoration: none;
+            padding: 14px 15px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85em;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(0, 240, 255, 0.08);
+            color: var(--neon-cyan);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+        }
+
+        /* Контентная зона */
+        main {
+            margin-left: 260px;
+            padding: 40px;
+            width: calc(100% - 260px);
+            box-sizing: border-box;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 1000px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Панели интерфейса */
+        .form-panel, .post-card, .champ-card {
+            background: var(--panel-bg);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-left: 4px solid var(--neon-cyan);
+            border-radius: 4px 12px 4px 4px;
+            padding: 25px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .form-panel { border-left-color: var(--neon-red); }
+
+        .post-card:hover, .champ-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--neon-cyan);
+            background: rgba(14, 21, 38, 0.85);
+        }
+
+        /* Карточка профиля в лобби */
+        .pilot-profile-card {
+            background: rgba(6, 9, 18, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 25px 20px;
+            text-align: center;
+            position: sticky;
+            top: 40px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+
+        .pilot-profile-card::before {
+            content: 'ONLINE';
+            position: absolute;
+            top: -10px; left: 50%;
+            transform: translateX(-50%);
+            background: #00ff66;
+            color: #000;
+            font-size: 0.65em;
+            font-weight: 900;
+            padding: 2px 10px;
+            border-radius: 10px;
+            letter-spacing: 1px;
+        }
+
+        .avatar {
+            width: 75px; height: 75px; 
+            background: #151d30; border-radius: 50%;
+            margin: 15px auto; border: 2px solid var(--neon-cyan);
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: 900; font-size: 1.4em; color: var(--neon-cyan);
+        }
+
+        .badge {
+            display: inline-block; padding: 4px 10px; border-radius: 4px;
+            font-size: 0.8em; font-weight: 800; margin: 5px; 
+            background: #04060f; font-family: monospace;
+        }
+        .badge.dr { color: #ffbc00; border: 1px solid #ffbc00; }
+        .badge.sr { color: var(--neon-cyan); border: 1px solid var(--neon-cyan); }
+
+        /* Ввод данных */
+        h2, h3, h4 { text-transform: uppercase; letter-spacing: 1px; margin-top: 0; }
+        label { display: block; font-size: 0.8em; text-transform: uppercase; color: var(--text-gray); margin-bottom: 6px; font-weight: 700; }
+
+        input, textarea, select {
+            width: 100%; padding: 12px; background-color: rgba(4, 6, 15, 0.8);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; 
+            color: white; font-size: 0.95em; box-sizing: border-box; margin-bottom: 20px; 
+            font-family: inherit; transition: border-color 0.2s;
+        }
+        input:focus, textarea:focus, select:focus { border-color: var(--neon-cyan); outline: none; }
+
+        .btn-action {
+            background: var(--neon-red); color: white; border: none;
+            padding: 14px 24px; font-weight: 800; text-transform: uppercase;
+            border-radius: 4px; cursor: pointer; width: 100%; 
+            letter-spacing: 1px; transition: all 0.2s;
+        }
+        .btn-action:hover { filter: brightness(1.2); }
+        .btn-action:disabled { background: #161d30; color: var(--text-gray); cursor: not-allowed; }
+
+        /* Лента и теги */
+        .feed-container { display: flex; flex-direction: column; gap: 20px; }
+        .post-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .post-avatar {
+            width: 42px; height: 42px; background: #151d30; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; 
+            border: 1px solid var(--neon-cyan); font-weight: 800; color: var(--neon-cyan);
+        }
+        .post-meta h4 { margin: 0; font-size: 1em; }
+        .post-meta span { font-size: 0.75em; color: var(--text-gray); }
+        .post-track { color: var(--neon-cyan); font-weight: 800; text-transform: uppercase; font-size: 1.1em; margin-bottom: 8px; }
+        .post-content { color: #e2e8f0; line-height: 1.5; }
+        
+        .pilot-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .pilot-tag {
+            background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.3);
+            color: #fff; padding: 5px 12px; border-radius: 4px; font-size: 0.8em; font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Наш живой анимированный фон -->
+    <div class="live-background"></div>
+
+    <!-- Навигация -->
+    <nav>
+        <div class="logo">GT7 Network</div>
+        <div class="nav-links">
+            <a class="active" onclick="switchTab(this, 'tab-lobbies')">🏎 Лобби-хаб</a>
+            <a onclick="switchTab(this, 'tab-pilots')">👥 Мой Профиль</a>
+            <a onclick="switchTab(this, 'tab-championships')">🏆 Чемпионаты</a>
+        </div>
+    </nav>
+
+    <!-- Главный терминал -->
+    <main>
+        
+        <!-- ВКЛАДКА 1: ЛОББИ ХАБ -->
+        <div id="tab-lobbies" class="tab-content active">
+            <div class="dashboard-grid">
+                <div>
+                    <div class="form-panel">
+                        <h3>Создать гоночное лобби</h3>
+                        <form id="socialPostForm">
+                            <label>Трасса / Класс машин</label>
+                            <input type="text" id="trackInput" placeholder="Напр: Nürburgring Nordschleife | Gr.3" required>
+                            <label>Параметры и регламент заезда</label>
+                            <textarea id="detailsInput" placeholder="Укажите время старта, ID комнаты, настройки износа шин и правила..." style="height:90px; resize:none;" required></textarea>
+                            <button type="submit" class="btn-action">Опубликовать заезд</button>
+                        </form>
+                    </div>
+                    <div class="feed-container" id="feed"></div>
+                </div>
+                
+                <div>
+                    <div class="pilot-profile-card">
+                        <div class="avatar" id="sideAvatar">--</div>
+                        <h3 id="sideName" style="margin: 10px 0 5px 0;">Синхронизация...</h3>
+                        <p id="sideCar" style="color: var(--text-gray); margin: 0 0 15px 0; font-size: 0.85em;">Машина не выбрана</p>
+                        <div>
+                            <span class="badge dr" id="sideDR">DR: --</span>
+                            <span class="badge sr" id="sideSR">SR: --</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ВКЛАДКА 2: НАСТРОЙКА ПРОФИЛЯ -->
+        <div id="tab-pilots" class="tab-content">
+            <h2>Лицензия Пилота FIA GT</h2>
+            <div class="dashboard-grid">
+                <div class="form-panel">
+                    <h3>Обновить данные в базе данных</h3>
+                    <form id="profileForm">
+                        <label>Игровой ID (PSN ID)</label>
+                        <input type="text" id="usernameInput" placeholder="Твой никнейм в GT7" required>
+                        
+                        <label>Основной болид</label>
+                        <input type="text" id="carInput" placeholder="Например: Porsche 911 GT3 R (992)">
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div>
+                                <label>Рейтинг гонщика (DR)</label>
+                                <select id="drInput">
+                                    <option value="A+">A+</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Рейтинг безопасности (SR)</label>
+                                <select id="srInput">
+                                    <option value="S">S</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-action" style="background: var(--neon-cyan); color: #04060f;">Сохранить изменения</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ВКЛАДКА 3: ЧЕМПИОНАТЫ -->
+        <div id="tab-championships" class="tab-content">
+            <h2>Текущие официальные чемпионаты</h2>
+            <div class="feed-container" id="championships-list"></div>
+        </div>
+
+    </main>
+
+<script>
+    // 1. СИСТЕМА ВКЛАДОК
+    function switchTab(element, tabId) {
+        document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
+        element.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    // 2. ДАННЫЕ ПРОФИЛЯ С ХРАНИЛИЩЕМ
+    let userProfile = JSON.parse(localStorage.getItem('gt7_live_profile')) || {
+        username: 'Fast_Pilot',
+        car: 'Toyota GR Supra GT3',
+        dr: 'A',
+        sr: 'S'
+    };
+
+    function updateProfileUI() {
+        document.getElementById('sideName').innerText = userProfile.username;
+        document.getElementById('sideCar').innerText = 'Болид: ' + userProfile.car;
+        document.getElementById('sideDR').innerText = 'DR: ' + userProfile.dr;
+        document.getElementById('sideSR').innerText = 'SR: ' + userProfile.sr;
+        document.getElementById('sideAvatar').innerText = userProfile.username.substring(0,2).toUpperCase();
+
+        document.getElementById('usernameInput').value = userProfile.username;
+        document.getElementById('carInput').value = userProfile.car;
+        document.getElementById('drInput').value = userProfile.dr;
+        document.getElementById('srInput').value = userProfile.sr;
+    }
+
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        userProfile = {
+            username: document.getElementById('usernameInput').value,
+            car: document.getElementById('carInput').value,
+            dr: document.getElementById('drInput').value,
+            sr: document.getElementById('srInput').value
+        };
+        localStorage.setItem('gt7_live_profile', JSON.stringify(userProfile));
+        updateProfileUI();
+        renderFeed();
+        renderChampionships();
+        alert('Данные вашей лицензии успешно обновлены!');
+    });
+
+    // 3. УСТОЙЧИВАЯ СИСТЕМА ТУРНИРОВ
+    const defaultTournaments = [
+        {
+            id: 'nurb_endurance_2026',
+            title: 'Nürburgring 24h Endurance Series',
+            status: 'РЕГИСТРАЦИЯ ОТКРЫТА',
+            desc: 'Легендарный суточный марафон в «Зеленом Аду». Класс машин: Gr.3. Динамическая погода, жесткий регламент смены шин, старт на рассвете.',
+            pilots: ['Schumacher_99', 'Vettel_Fan']
+        },
+        {
+            id: 'supra_cup',
+            title: 'GR Supra Mono-Class World Championship',
+            status: 'РЕГИСТРАЦИЯ ОТКРЫТА',
+            desc: 'Официальный монокубок. Полностью идентичные настройки машин Toyota GR Supra. Никакого тюнинга — только чистый скилл на трассах Японии.',
+            pilots: ['Hamilton_Apex']
+        }
+    ];
+
+    let tournaments = JSON.parse(localStorage.getItem('gt7_live_tournaments')) || defaultTournaments;
+
+    function renderChampionships() {
+        const container = document.getElementById('championships-list');
+        if (!container) return;
+        container.innerHTML = '';
+
+        tournaments.forEach(tour => {
+            const isRegistered = tour.pilots.includes(userProfile.username);
+            let pilotsHtml = tour.pilots.map(p => `<span class="pilot-tag">🏎 ${escapeHtml(p)}</span>`).join('');
+            
+            const card = document.createElement('div');
+            card.className = 'champ-card';
+            card.innerHTML = `
+                <span style="color: ${isRegistered ? 'var(--neon-cyan)' : 'var(--neon-red)'}; font-weight: 800; font-size: 0.8em; letter-spacing: 1px;">
+                    ${isRegistered ? '✓ ВЫ ЗАРЕГИСТРИРОВАНЫ' : tour.status}
+                </span>
+                <h3 style="margin: 8px 0 10px 0; color: #fff;">${tour.title}</h3>
+                <p style="color: var(--text-gray); font-size: 0.9em; line-height:1.5;">${tour.desc}</p>
+                
+                <h4 style="margin: 18px 0 8px 0; font-size:0.8em; color: var(--neon-cyan); text-transform: uppercase;">Заявленные пилоты (${tour.pilots.length}):</h4>
+                <div class="pilot-list">${pilotsHtml}</div>
+                
+                <button class="btn-action" style="margin-top: 25px; background: ${isRegistered ? 'rgba(255,255,255,0.05)' : 'var(--neon-red)'}" 
+                        onclick="registerToTournament('${tour.id}')" ${isRegistered ? 'disabled' : ''}>
+                    ${isRegistered ? 'Вы в стартовом листе' : 'Подать заявку на участие'}
+                </button>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function registerToTournament(tourId) {
+        const tour = tournaments.find(t => t.id === tourId);
+        if (tour && !tour.pilots.includes(userProfile.username)) {
+            tour.pilots.push(userProfile.username);
+            localStorage.setItem('gt7_live_tournaments', JSON.stringify(tournaments));
+            renderChampionships();
+        }
+    }
+
+    // 4. ЛЕНТА ЛОББИ ХАБА
+    const postForm = document.getElementById('socialPostForm');
+    const feedContainer = document.getElementById('feed');
+    let socialPosts = JSON.parse(localStorage.getItem('gt7_live_posts')) || [];
+
+    function renderFeed() {
+        if (!feedContainer) return;
+        feedContainer.innerHTML = '';
+
+        socialPosts.slice().reverse().forEach(post => {
+            const postElement = document.createElement('div');
+            postElement.className = 'post-card';
+            postElement.innerHTML = `
+                <div class="post-header">
+                    <div class="post-avatar">${post.author.substring(0,2).toUpperCase()}</div>
+                    <div class="post-meta">
+                        <h4>${escapeHtml(post.author)} <span style="color:#ffbc00;">[${post.dr}/${post.sr}]</span></h4>
+                        <span>${post.time}</span>
+                    </div>
+                </div>
+                <div class="post-track">${escapeHtml(post.track)}</div>
+                <div class="post-content">${escapeHtml(post.details).replace(/\n/g, '<br>')}</div>
+            `;
+            feedContainer.appendChild(postElement);
+        });
+
+        if(socialPosts.length === 0) {
+            feedContainer.innerHTML = '<p style="color: var(--text-gray); font-style: italic; text-align: center; padding: 30px;">Сейчас открытых комнат нет. Будь первым — создай лобби!</p>';
+        }
+    }
+
+    postForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const now = new Date();
+        const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' | ' + now.toLocaleDateString();
+
+        const newPost = {
+            author: userProfile.username,
+            dr: userProfile.dr,
+            sr: userProfile.sr,
+            track: document.getElementById('trackInput').value,
+            details: document.getElementById('detailsInput').value,
+            time: timeString
+        };
+
+        socialPosts.push(newPost);
+        localStorage.setItem('gt7_live_posts', JSON.stringify(socialPosts));
+        renderFeed();
+        postForm.reset();
+    });
+
+    function escapeHtml(text) {
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // Инициализация системы при старте
+    updateProfileUI();
+    renderFeed();
+    renderChampionships();
+</script>
+
+</body>
+</html>
