@@ -30,34 +30,21 @@
             top: 0; left: 0;
             width: 100vw; height: 100vh;
             z-index: -1;
-            /* ОСНОВНОЙ ГРАДИЕНТ РАССВЕТА */
-            background-color: var(--cyber-dark);
-            background-image: 
-                /* 1. Насыщенная маджента рассветной дымки от солнца */
-                radial-gradient(circle at 20% 130%, rgba(255, 0, 85, 0.3) 0%, transparent 60%), 
-                /* 2. Прохладные тени рассветного синего неба */
-                radial-gradient(circle at 80% 120%, rgba(0, 240, 255, 0.2) 0%, transparent 70%),
-                /* 3. Глубокое холодное ночное небо */
-                radial-gradient(circle at 100% -100%, rgba(21, 29, 48, 0.6), transparent 90%),
-                /* 4. Мягкий оранжевый свет горизонта */
-                linear-gradient(135deg, rgba(255, 115, 0, 0.1), transparent 40%);
-            background-size: cover;
-            /* Смягчаем градиенты в мягкое неоновое свечение рассвета */
-            filter: blur(5px);
+            /* Настоящий градиент гоночного рассвета: космос -> фиолетовый -> розовый -> оранжевый */
+            background: linear-gradient(180deg, 
+                #060913 0%, 
+                #1a103c 40%, 
+                #6b114d 70%, 
+                #ff2a5f 90%, 
+                #ff7e40 100%);
+            background-size: 100% 200%;
+            /* Плавное движение неба, как будто солнце медленно встаёт */
+            animation: slowSunrise 12s ease-in-out infinite alternate;
         }
 
-        /* Эффект живого рассветного пульса (анимация дышит) */
-        .live-background::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to top, rgba(4, 6, 15, 0.95), rgba(4, 6, 15, 0.6));
-            animation: sunrisePulse 10s ease-in-out infinite alternate;
-        }
-
-        @keyframes sunrisePulse {
-            0% { opacity: 0.8; filter: hue-rotate(0deg); }
-            100% { opacity: 1; filter: hue-rotate(15deg); }
+        @keyframes slowSunrise {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 0% 100%; filter: saturate(1.2); }
         }
 
         /* Боковая панель (Стекло / Blur) */
