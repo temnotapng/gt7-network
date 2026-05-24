@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GT7 Driver Network | Pro Dashboard</title>
+    <title>GT7 Driver Network | Cloud Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-main: #060709;
@@ -27,7 +28,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* КИНЕМАТОГРАФИЧНЫЙ ФОН: РАССВЕТ В ЗЕЛЕНОМ АДУ */
+        /* КИНЕМАТОГРАФИЧНЫЙ ФОН */
         .track-background {
             position: fixed;
             top: 0; left: 0;
@@ -37,7 +38,6 @@
             animation: environmentLight 10s infinite;
         }
 
-        /* ИМПУЛЬСНЫЙ СИГНАЛ ФАР (Двойное гоночное моргание) */
         .track-background::before {
             content: '';
             position: absolute;
@@ -71,7 +71,7 @@
             79%, 81% { opacity: 1; }
         }
 
-        /* ЭКРАН АВТОРИЗАЦИИ (БЛОКИРОВЩИК) */
+        /* ЭКРАН АВТОРИЗАЦИИ */
         .auth-screen {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -106,7 +106,7 @@
             font-weight: 600;
         }
 
-        /* БОКОВАЯ ПАНЕЛЬ НАВИГАЦИИ */
+        /* НАВИГАЦИЯ */
         nav {
             width: 280px;
             background: rgba(8, 9, 12, 0.85);
@@ -161,7 +161,7 @@
             padding-left: 13px;
         }
 
-        /* ОСНОВНАЯ РАБОЧАЯ ОБЛАСТЬ */
+        /* ОСНОВНАЯ ОБЛАСТЬ */
         main {
             margin-left: 280px;
             padding: 60px;
@@ -180,10 +180,7 @@
             gap: 40px;
             align-items: start;
         }
-        
-        @media (max-width: 1200px) { .grid-layout { grid-template-columns: 1fr; } }
 
-        /* СТИЛЬ ПАНЕЛЕЙ И КАРТОЧЕК */
         .pro-panel {
             background: var(--panel-glass);
             border: 1px solid var(--panel-border);
@@ -194,133 +191,36 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
 
-        h2, h3, h4 {
-            margin-top: 0;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        h2, h3, h4 { margin-top: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         h2 { font-size: 1.6em; margin-bottom: 35px; border-bottom: 1px solid var(--panel-border); padding-bottom: 15px;}
         h3 { font-size: 1.15em; margin-bottom: 25px; color: rgba(255,255,255,0.9); }
 
-        /* ЭЛЕМЕНТЫ ФОРМЫ */
-        label {
-            display: block;
-            font-size: 0.75em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-        
-        input, textarea, select {
-            width: 100%;
-            padding: 14px 16px;
-            background: rgba(15, 18, 25, 0.7);
-            border: 1px solid var(--panel-border);
-            border-radius: 8px;
-            color: white;
-            font-size: 0.95em;
-            box-sizing: border-box;
-            margin-bottom: 25px;
-            font-family: inherit;
-            transition: all 0.2s;
-        }
-        input:focus, textarea:focus, select:focus {
-            border-color: rgba(255,255,255,0.25);
-            outline: none;
-            background: rgba(20, 24, 35, 0.8);
-        }
+        label { display: block; font-size: 0.75em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; font-weight: 700; letter-spacing: 0.5px; }
+        input, textarea, select { width: 100%; padding: 14px 16px; background: rgba(15, 18, 25, 0.7); border: 1px solid var(--panel-border); border-radius: 8px; color: white; font-size: 0.95em; box-sizing: border-box; margin-bottom: 25px; font-family: inherit; }
 
-        .btn-premium {
-            font-family: inherit;
-            background: var(--text-primary);
-            color: var(--bg-main);
-            border: none;
-            padding: 16px 30px;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.85em;
-            letter-spacing: 1px;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.2s ease;
-        }
+        .btn-premium { font-family: inherit; background: var(--text-primary); color: var(--bg-main); border: none; padding: 16px 30px; font-weight: 700; text-transform: uppercase; font-size: 0.85em; letter-spacing: 1px; border-radius: 8px; cursor: pointer; width: 100%; transition: all 0.2s ease; }
         .btn-premium:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        /* КАРТОЧКА ПИЛОТА (СПРАВА) */
-        .pilot-sidebar-card {
-            background: rgba(10, 12, 18, 0.8);
-            border: 1px solid var(--panel-border);
-            border-radius: 12px;
-            padding: 40px 30px;
-            text-align: center;
-            backdrop-filter: blur(20px);
-            position: sticky; top: 60px;
-        }
-        
-        .avatar-circle {
-            width: 70px; height: 70px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--panel-border);
-            border-radius: 50%;
-            margin: 0 auto 20px auto;
-            display: flex; align-items: center; justify-content: center;
-            font-family: 'JetBrains+Mono', monospace;
-            font-weight: 700; font-size: 1.4em; color: var(--text-primary);
-        }
+        /* КАРТОЧКА СБОКУ */
+        .pilot-sidebar-card { background: rgba(10, 12, 18, 0.8); border: 1px solid var(--panel-border); border-radius: 12px; padding: 40px 30px; text-align: center; backdrop-filter: blur(20px); position: sticky; top: 60px; }
+        .avatar-circle { width: 70px; height: 70px; background: rgba(255,255,255,0.03); border: 1px solid var(--panel-border); border-radius: 50%; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains+Mono', monospace; font-weight: 700; font-size: 1.4em; color: var(--text-primary); }
+        .badge-system { display: inline-block; padding: 5px 12px; border-radius: 4px; font-size: 0.75em; font-weight: 700; margin: 4px; font-family: 'JetBrains+Mono', monospace; background: rgba(255,255,255,0.05); border: 1px solid var(--panel-border); }
 
-        .badge-system {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 4px;
-            font-size: 0.75em;
-            font-weight: 700;
-            margin: 4px;
-            font-family: 'JetBrains+Mono', monospace;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--panel-border);
-        }
-
-        /* ИНЖЕНЕРНАЯ ТЕЛЕМЕТРИЯ (6-NODES MFD) */
-        .mfd-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 15px;
-            margin-top: 25px;
-        }
-        .mfd-node {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid var(--panel-border);
-        }
+        /* MFD ГРИД */
+        .mfd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; margin-top: 25px; }
+        .mfd-node { background: rgba(0, 0, 0, 0.4); padding: 16px; border-radius: 8px; border: 1px solid var(--panel-border); }
         .mfd-node .label { font-size: 0.65em; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
         .mfd-node .value { font-family: 'JetBrains+Mono', monospace; font-size: 1.4em; font-weight: 700; color: #fff; margin-top: 8px; }
 
-        /* СТИЛЬ ЛЕНТЫ ГОНОК */
+        /* ЛЕНТА */
         .feed-stack { display: flex; flex-direction: column; gap: 20px; }
         .post-card { background: var(--panel-glass); border: 1px solid var(--panel-border); border-radius: 12px; padding: 30px; }
         .post-meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.85em; color: var(--text-muted); }
         .post-track-title { font-size: 1.25em; font-weight: 700; color: #fff; margin-bottom: 10px; }
         .post-body-text { color: var(--text-muted); font-size: 0.95em; line-height: 1.6; }
 
-        /* ПУСТАЯ ЗАГЛУШКА ДЛЯ ЧЕМПИОНАТОВ */
-        .empty-championships-box {
-            border: 1px dashed rgba(255,255,255,0.15);
-            border-radius: 12px;
-            padding: 60px 40px;
-            text-align: center;
-            background: rgba(255,255,255,0.01);
-        }
-        .empty-championships-box .icon {
-            font-family: 'JetBrains+Mono', monospace;
-            font-size: 2em;
-            color: var(--accent-red);
-            margin-bottom: 20px;
-        }
+        .empty-championships-box { border: 1px dashed rgba(255,255,255,0.15); border-radius: 12px; padding: 60px 40px; text-align: center; background: rgba(255,255,255,0.01); }
+        .empty-championships-box .icon { font-family: 'JetBrains+Mono', monospace; font-size: 2em; color: var(--accent-red); margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -377,7 +277,6 @@
     </nav>
 
     <main>
-        
         <div id="tab-lobbies" class="tab-content active">
             <div class="grid-layout">
                 <div>
@@ -415,7 +314,6 @@
                 <form id="profileForm">
                     <label>Основной боевой автомобиль</label>
                     <input type="text" id="carInput" required>
-                    
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div>
                             <label>Рейтинг пилота (DR)</label>
@@ -436,9 +334,7 @@
             <div class="empty-championships-box" style="max-width: 800px;">
                 <div class="icon">[ СЕЗОН СЕЙЧАС ФОРМИРУЕТСЯ ]</div>
                 <h3 style="margin-bottom: 10px; font-size: 1.3em;">Календарь этапов пуст</h3>
-                <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto; line-height: 1.6; font-size: 0.95em;">
-                    В данный момент гоночная дирекция занимается проработкой технического регламента и одобрением трасс. Официальные кубки и endurance-серии появятся здесь в ближайшее время. Следите за обновлениями в лобби-хабе!
-                </p>
+                <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto; line-height: 1.6; font-size: 0.95em;">В данный момент гоночная дирекция занимается проработкой технического регламента. Скоро всё появится!</p>
             </div>
         </div>
 
@@ -449,7 +345,6 @@
                     <h3>Параметры сессии</h3>
                     <label>Режим заезда</label>
                     <select id="calcRaceMode" onchange="toggleCalcFields()"><option value="laps">Фиксированная дистанция (круги)</option><option value="time">Эндуранс-марафон (таймер)</option></select>
-                    
                     <div id="calcLapsGroup">
                         <label>Количество кругов в гонке</label>
                         <input type="number" id="calcRaceLaps" value="12" min="1" oninput="calculateStrategy()">
@@ -460,30 +355,23 @@
                         <label>Планируемое время круга</label>
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 25px;"><input type="number" id="calcLapMin" value="1" min="0" oninput="calculateStrategy()"><input type="number" id="calcLapSec" value="45" min="0" max="59" oninput="calculateStrategy()"></div>
                     </div>
-
                     <div style="border-top: 1px dashed var(--panel-border); margin: 20px 0; padding-top: 15px;">
                         <h4 style="font-size:0.9em; color:var(--accent-blue); margin-bottom: 15px;">Телеметрия топлива</h4>
                         <label>Множитель расхода топлива (Fuel Rate)</label>
-                        <select id="calcFuelRate" onchange="calculateStrategy()"><option value="1">x1</option><option value="2">x2</option><option value="3">x3</option><option value="5" selected>x5 (Daily Race)</option><option value="10">x10</option></select>
+                        <select id="calcFuelRate" onchange="calculateStrategy()"><option value="1">x1</option><option value="2">x2</option><option value="3">x3</option><option value="5" selected>x5</option><option value="10">x10</option></select>
                         <label>Базовый расход на FM1 (% от бака за 1 круг)</label>
                         <input type="number" id="calcFuelPerLapPercent" value="4.5" step="0.1" oninput="calculateStrategy()">
                         <label>Топливная карта (Fuel Map)</label>
-                        <select id="calcFuelMap" onchange="calculateStrategy()"><option value="1">FM1 — Power (100% мощности)</option><option value="2">FM2 — (93% расхода)</option><option value="3">FM3 — (86% расхода)</option><option value="6">FM6 — Lean (62% расхода)</option></select>
+                        <select id="calcFuelMap" onchange="calculateStrategy()"><option value="1">FM1 — Power</option><option value="2">FM2</option><option value="3">FM3</option><option value="6">FM6 — Lean</option></select>
                     </div>
-
                     <div style="border-top: 1px dashed var(--panel-border); margin: 20px 0; padding-top: 15px;">
                         <h4 style="font-size:0.9em; color:#f43f5e; margin-bottom: 15px;">Телеметрия резины</h4>
                         <label>Состав шин (Tire Compound)</label>
-                        <select id="calcTireCompound" onchange="calculateStrategy()">
-                            <option value="soft" selected>Racing: Soft (Мягкие)</option>
-                            <option value="medium">Racing: Medium (Средние)</option>
-                            <option value="hard">Racing: Hard (Жесткие)</option>
-                        </select>
-                        <label>Множитель износа шин в лобби (Tire Rate)</label>
-                        <select id="calcTireRate" onchange="calculateStrategy()"><option value="1">x1</option><option value="2">x2</option><option value="4">x4</option><option value="6" selected>x6 (Стандарт Endurance)</option><option value="10">x10</option><option value="15">x15</option></select>
+                        <select id="calcTireCompound" onchange="calculateStrategy()"><option value="soft" selected>Racing: Soft</option><option value="medium">Racing: Medium</option><option value="hard">Racing: Hard</option></select>
+                        <label>Множитель износа шин (Tire Rate)</label>
+                        <select id="calcTireRate" onchange="calculateStrategy()"><option value="1">x1</option><option value="2">x2</option><option value="4">x4</option><option value="6" selected>x6</option><option value="10">x10</option></select>
                     </div>
                 </div>
-
                 <div class="pro-panel" style="background: rgba(15, 20, 30, 0.45); position: sticky; top: 60px;">
                     <h3>Анализ телеметрии инженера</h3>
                     <div class="mfd-grid">
@@ -498,61 +386,46 @@
                 </div>
             </div>
         </div>
-
     </main>
 
 <script>
-    // СИНТЕЗАТОР ГОНОЧНЫХ SFX ЗВУКОВ (WEB AUDIO API)
+    // ИНИЦИАЛИЗАЦИЯ SUPABASE
+    const SUPABASE_URL = 'https://fbcnnieqieyvzsfipckl.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_8IgPV_lCbhc2E2s07k-NfQ_7oMEoHIC';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentPilot = JSON.parse(sessionStorage.getItem('gt7_logged_pilot')) || null;
+
+    // СИНТЕЗАТОР ГОНОЧНЫХ SFX
     function playGTClick() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             const now = ctx.currentTime;
-            
             const playNode = (freq, start, duration, vol) => {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, start);
-                gain.gain.setValueAtTime(vol, start);
-                gain.gain.exponentialRampToValueAtTime(0.00001, start + duration);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(start);
-                osc.stop(start + duration);
+                const osc = ctx.createOscillator(); const gain = ctx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(freq, start);
+                gain.gain.setValueAtTime(vol, start); gain.gain.exponentialRampToValueAtTime(0.00001, start + duration);
+                osc.connect(gain); gain.connect(ctx.destination); osc.start(start); osc.stop(start + duration);
             };
-            // Имитация оригинального двойного клика GT7 UI
-            playNode(1550, now, 0.04, 0.03);
-            playNode(1950, now + 0.02, 0.03, 0.02);
-        } catch(e) { console.log('Audio error:', e); }
+            playNode(1550, now, 0.04, 0.03); playNode(1950, now + 0.02, 0.03, 0.02);
+        } catch(e) {}
     }
 
     function playGTSuccess() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             const now = ctx.currentTime;
-            
             const playNode = (freq, start, duration, vol) => {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'triangle'; // Более мягкий тон
-                osc.frequency.setValueAtTime(freq, start);
-                gain.gain.setValueAtTime(vol, start);
-                gain.gain.exponentialRampToValueAtTime(0.00001, start + duration);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(start);
-                osc.stop(start + duration);
+                const osc = ctx.createOscillator(); const gain = ctx.createGain();
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, start);
+                gain.gain.setValueAtTime(vol, start); gain.gain.exponentialRampToValueAtTime(0.00001, start + duration);
+                osc.connect(gain); gain.connect(ctx.destination); osc.start(start); osc.stop(start + duration);
             };
-            // Восходящий хай-тек аккорд подтверждения операции
-            playNode(880, now, 0.15, 0.04);       
-            playNode(1109.73, now + 0.05, 0.15, 0.04); 
-            playNode(1320, now + 0.10, 0.25, 0.04); 
-        } catch(e) { console.log('Audio error:', e); }
+            playNode(880, now, 0.15, 0.04); playNode(1109.73, now + 0.05, 0.15, 0.04); playNode(1320, now + 0.10, 0.25, 0.04);
+        } catch(e) {}
     }
 
-    // СИСТЕМА ЛОГИНА И РЕГИСТРАЦИИ
-    let currentPilot = JSON.parse(sessionStorage.getItem('gt7_logged_pilot')) || null;
-
+    // СИСТЕМА АВТОРИЗАЦИИ (ОБЛАКО)
     function checkAuth() {
         if (currentPilot) {
             document.getElementById('authScreen').style.display = 'none';
@@ -569,7 +442,7 @@
         document.getElementById('registerFormContainer').style.display = showLogin ? 'none' : 'block';
     }
 
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const username = document.getElementById('regUsername').value.trim();
         const password = document.getElementById('regPassword').value;
@@ -577,26 +450,28 @@
         const dr = document.getElementById('regDr').value;
         const sr = document.getElementById('regSr').value;
 
-        let accounts = JSON.parse(localStorage.getItem('gt7_accounts')) || {};
-        if (accounts[username.toLowerCase()]) { alert('Этот PSN ID уже зарегистрирован!'); return; }
+        // Проверяем, занят ли ник в облаке
+        const { data: existing } = await supabase.from('gt7_accounts').select('username').eq('username', username).maybeSingle();
+        if (existing) { alert('Этот PSN ID уже зарегистрирован в базе данных!'); return; }
 
-        accounts[username.toLowerCase()] = { username, password, car, dr, sr };
-        localStorage.setItem('gt7_accounts', JSON.stringify(accounts));
-        currentPilot = accounts[username.toLowerCase()];
+        // Добавляем в базу данных
+        const { error } = await supabase.from('gt7_accounts').insert([{ username, password, car, dr, sr }]);
+        if(error) { alert('Ошибка БД: ' + error.message); return; }
+
+        currentPilot = { username, car, dr, sr };
         sessionStorage.setItem('gt7_logged_pilot', JSON.stringify(currentPilot));
-        
         playGTSuccess();
-        alert('Лицензия FIA успешно создана!');
+        alert('Регистрация завершена! Лицензия FIA сохранена в облаке.');
         checkAuth();
     });
 
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+        const username = document.getElementById('loginUsername').value.trim();
         const password = document.getElementById('loginPassword').value;
 
-        let accounts = JSON.parse(localStorage.getItem('gt7_accounts')) || {};
-        const account = accounts[username];
+        // Запрос к Supabase
+        const { data: account, error } = await supabase.from('gt7_accounts').select('*').eq('username', username).maybeSingle();
 
         if (account && account.password === password) {
             currentPilot = account;
@@ -613,7 +488,7 @@
         checkAuth();
     }
 
-    // СИСТЕМА ВКЛАДОК
+    // НАВИГАЦИЯ В ВКЛАДКАХ
     function switchTab(element, tabId) {
         playGTClick();
         document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
@@ -621,6 +496,7 @@
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         if(tabId === 'tab-calc') calculateStrategy();
+        if(tabId === 'tab-lobbies') renderFeed();
     }
 
     function updateProfileUI() {
@@ -635,24 +511,84 @@
         document.getElementById('srInput').value = currentPilot.sr;
     }
 
-    document.getElementById('profileForm').addEventListener('submit', function(e) {
+    document.getElementById('profileForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         if (!currentPilot) return;
-        currentPilot.car = document.getElementById('carInput').value;
-        currentPilot.dr = document.getElementById('drInput').value;
-        currentPilot.sr = document.getElementById('srInput').value;
+        const car = document.getElementById('carInput').value;
+        const dr = document.getElementById('drInput').value;
+        const sr = document.getElementById('srInput').value;
 
+        // Обновляем строку пилота в базе данных
+        const { error } = await supabase.from('gt7_accounts').update({ car, dr, sr }).eq('username', currentPilot.username);
+        if(error) { alert('Не удалось обновить профиль в БД'); return; }
+
+        currentPilot.car = car; currentPilot.dr = dr; currentPilot.sr = sr;
         sessionStorage.setItem('gt7_logged_pilot', JSON.stringify(currentPilot));
-        let accounts = JSON.parse(localStorage.getItem('gt7_accounts')) || {};
-        accounts[currentPilot.username.toLowerCase()] = currentPilot;
-        localStorage.setItem('gt7_accounts', JSON.stringify(accounts));
         updateProfileUI();
-        renderFeed();
         playGTSuccess();
-        alert('Данные лицензии обновлены.');
+        alert('Данные лицензии синхронизированы с облаком.');
     });
 
-    // ЛОГИКА MFD КАЛЬКУЛЯТОРА
+    // ОБЛАЧНАЯ ЛЕНТА ГОНОК
+    const postForm = document.getElementById('socialPostForm');
+    const feedContainer = document.getElementById('feed');
+
+    async function renderFeed() {
+        if (!feedContainer) return;
+        feedContainer.innerHTML = '<p style="color: var(--text-muted); text-align:center; padding:20px;">Подключение к спутнику телеметрии...</p>';
+
+        // Тянем посты из Supabase, сортируя по свежести
+        const { data: posts, error } = await supabase.from('gt7_posts').select('*').order('created_at', { ascending: false });
+        
+        feedContainer.innerHTML = '';
+        if(error || !posts || posts.length === 0) {
+            feedContainer.innerHTML = '<p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 40px;">Активные сессии лобби отсутствуют.</p>';
+            return;
+        }
+
+        posts.forEach(post => {
+            const dateObj = new Date(post.created_at);
+            const timeString = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' | ' + dateObj.toLocaleDateString();
+            
+            const postElement = document.createElement('div');
+            postElement.className = 'post-card';
+            postElement.innerHTML = `
+                <div class="post-meta-row">
+                    <span style="font-weight: 700; color: #fff;">${escapeHtml(post.author)} [DR: ${post.dr} / SR: ${post.sr}]</span>
+                    <span>${timeString}</span>
+                </div>
+                <div class="post-track-title">${escapeHtml(post.track)}</div>
+                <div class="post-body-text">${escapeHtml(post.details).replace(/\n/g, '<br>')}</div>
+            `;
+            feedContainer.appendChild(postElement);
+        });
+    }
+
+    postForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if(!currentPilot) return;
+
+        const track = document.getElementById('trackInput').value;
+        const details = document.getElementById('detailsInput').value;
+
+        // Пушим пост прямо в облако
+        const { error } = await supabase.from('gt7_posts').insert([{
+            author: currentPilot.username,
+            dr: currentPilot.dr,
+            sr: currentPilot.sr,
+            track: track,
+            details: details
+        }]);
+
+        if (error) { alert('Ошибка отправки сессии'); return; }
+        
+        postForm.reset();
+        renderFeed();
+    });
+
+    function escapeHtml(text) { return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+    // КАЛЬКУЛЯТОР СТРАТЕГИИ
     function toggleCalcFields() {
         playGTClick();
         const mode = document.getElementById('calcRaceMode').value;
@@ -663,7 +599,6 @@
 
     function calculateStrategy() {
         const mode = document.getElementById('calcRaceMode').value;
-        
         let totalLaps = 0;
         if (mode === 'laps') {
             totalLaps = parseInt(document.getElementById('calcRaceLaps').value) || 0;
@@ -688,7 +623,6 @@
         const baseTireWear = { 'soft': 1.1, 'medium': 0.65, 'hard': 0.35 };
         const selectedCompound = document.getElementById('calcTireCompound').value;
         const tireRate = parseFloat(document.getElementById('calcTireRate').value) || 1;
-        
         const actualTireWearPerLap = baseTireWear[selectedCompound] * tireRate;
         const lapsPerTireSet = Math.floor((85 / actualTireWearPerLap) * 100) / 100;
 
@@ -704,80 +638,14 @@
 
         let tipElement = document.getElementById('resStrategyTip');
         if (stopsRequired === 0) {
-            tipElement.innerHTML = `Ресурсов бака и прочности шин хватает до финиша. Стратегия <strong style="color:#34d399;">«Без пит-стопов»</strong>. Атакуйте в полную силу на карте FM1.`;
+            tipElement.innerHTML = `Ресурсов бака и прочности шин хватает до финиша. Стратегия <strong style="color:#34d399;">«Без пит-стопов»</strong>. Атакуйте на карте FM1.`;
         } else {
-            let limitReason = lapsPerTank < lapsPerTireSet ? 'топливо (пустой бак)' : 'критический износ резины';
-            let stintLength = Math.floor(maxLapsPerStint);
-            
-            let advice = `Необходимая стратегия: <strong style="color:var(--accent-red);">${stopsRequired} пит-стоп(а)</strong>. Окно остановки открывается каждые <strong style="color:#fff;">${stintLength} кр.</strong> Главный ограничитель отрезка — <span style="color:#60a5fa;">${limitReason}</span>.<br><br>`;
-            
-            if (lapsPerTireSet < lapsPerTank && selectedCompound === 'soft') {
-                advice += `⚠️ <span style="color:#f43f5e;">Инженерное предупреждение:</span> Мягкие шины горят быстрее, чем кончается бензин. Перейдите на состав <strong style="color:#fff;">Medium</strong>, чтобы синхронизировать износ с баком и избежать лишних остановок.`;
-            } else if (lapsPerTank < lapsPerTireSet && fuelMapVal === '1') {
-                advice += `💡 <span style="color:#38bdf8;">Совет инженера:</span> Бак пустеет слишком быстро, пока резина еще жива. Попробуйте включить <strong style="color:#fff;">Fuel Map 2 или 3</strong>, чтобы растянуть топливо и убрать один пит-стоп из гонки.`;
-            } else {
-                advice += `Рекомендуется проводить стандартный одновременный сервис: полная дозаправка + свежий комплект резины.`;
-            }
-            tipElement.innerHTML = advice;
+            let limitReason = lapsPerTank < lapsPerTireSet ? 'топливо' : 'износ резины';
+            tipElement.innerHTML = `Необходимая стратегия: <strong style="color:var(--accent-red);">${stopsRequired} пит-стоп(а)</strong>. Отрезок: ~<strong style="color:#fff;">${Math.floor(maxLapsPerStint)} кр.</strong> Ограничитель — <span style="color:#60a5fa;">${limitReason}</span>.`;
         }
-    }
-
-    // ЛЕНТА СЕССИЙ ЛОББИ
-    const postForm = document.getElementById('socialPostForm');
-    const feedContainer = document.getElementById('feed');
-    let socialPosts = JSON.parse(localStorage.getItem('gt7_live_posts')) || [];
-
-    function renderFeed() {
-        if (!feedContainer) return;
-        feedContainer.innerHTML = '';
-
-        socialPosts.slice().reverse().forEach(post => {
-            const postElement = document.createElement('div');
-            postElement.className = 'post-card';
-            postElement.innerHTML = `
-                <div class="post-meta-row">
-                    <span style="font-weight: 700; color: #fff;">${escapeHtml(post.author)} [DR: ${post.dr} / SR: ${post.sr}]</span>
-                    <span>${post.time}</span>
-                </div>
-                <div class="post-track-title">${escapeHtml(post.track)}</div>
-                <div class="post-body-text">${escapeHtml(post.details).replace(/\n/g, '<br>')}</div>
-            `;
-            feedContainer.appendChild(postElement);
-        });
-
-        if(socialPosts.length === 0) {
-            feedContainer.innerHTML = '<p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 40px;">Активные телеметрии лобби отсутствуют. Создайте первую сессию.</p>';
-        }
-    }
-
-    postForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        if(!currentPilot) return;
-
-        const now = new Date();
-        const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' | ' + now.toLocaleDateString();
-
-        const newPost = {
-            author: currentPilot.username,
-            dr: currentPilot.dr,
-            sr: currentPilot.sr,
-            track: document.getElementById('trackInput').value,
-            details: document.getElementById('detailsInput').value,
-            time: timeString
-        };
-
-        socialPosts.push(newPost);
-        localStorage.setItem('gt7_live_posts', JSON.stringify(socialPosts));
-        renderFeed();
-        postForm.reset();
-    });
-
-    function escapeHtml(text) {
-        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
     checkAuth();
 </script>
-
 </body>
 </html>
