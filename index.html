@@ -2,717 +2,76 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GT7 Network // Lobby Hub & MFD</title>
+    <title>GT7 Network // Hub</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --card-bg: rgba(19, 20, 25, 0.85);
-            --accent-color: #ff3e3e;
-            --mfd-color: #00e5ff;
-            --text-main: #f5f5f7;
-            --text-muted: #7e7e86;
-            --border-color: rgba(36, 37, 45, 0.6);
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #050507;
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            position: relative;
-        }
-
-        /* --- ЗАДНИЙ ПЛАН: ЖИВОЙ АНИМИРОВАННЫЙ СЛАЙДЕР --- */
-        .bg-slider {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-            overflow: hidden;
-            background-color: #050507;
-            pointer-events: none;
-        }
-
-        .bg-slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-        }
-
-        .track-bg {
-            background-image: linear-gradient(rgba(10, 10, 12, 0.5), rgba(10, 10, 12, 0.8)), 
-                              url('https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=80&w=1920'); 
-            animation: fadeTrack 16s infinite ease-in-out;
-        }
-
-        .car-bg {
-            background-image: linear-gradient(rgba(10, 10, 12, 0.4), rgba(10, 10, 12, 0.7)), 
-                              url('https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=1920'); 
-            animation: fadeCarAndFlash 16s infinite ease-in-out;
-        }
-
-        @keyframes fadeTrack {
-            0%, 40% { opacity: 1; }      
-            50%, 90% { opacity: 0.1; }   
-            100% { opacity: 1; }         
-        }
-
-        @keyframes fadeCarAndFlash {
-            0%, 40% { opacity: 0; filter: brightness(1) contrast(1); } 
-            48% { opacity: 1; filter: brightness(1) contrast(1); }    
-            52% { filter: brightness(1.8) contrast(1.4); } 
-            54% { filter: brightness(1) contrast(1); }     
-            56% { filter: brightness(1.8) contrast(1.4); } 
-            58% { filter: brightness(1) contrast(1); }     
-            80% { filter: brightness(1) contrast(1); }
-            82% { filter: brightness(1.9) contrast(1.5); } 
-            84% { filter: brightness(1) contrast(1); }
-            92% { opacity: 1; }
-            100% { opacity: 0; } 
-        }
-
-        /* --- СТИЛИ ИНТЕРФЕЙСА ХАБА --- */
-        header {
-            width: 100%;
-            max-width: 1200px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--accent-color);
-            padding-bottom: 15px;
-            margin-bottom: 30px;
-            backdrop-filter: blur(5px);
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 24px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-style: italic;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-        }
-
-        .hub-container {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 25px;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        @media (max-width: 900px) {
-            .hub-container { grid-template-columns: 1fr; }
-        }
-
-        .panel {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
-            backdrop-filter: blur(10px);
-        }
-
-        .mfd-panel {
-            background: linear-gradient(180deg, rgba(16, 26, 35, 0.9) 0%, rgba(10, 12, 18, 0.9) 100%);
-            border: 1px solid rgba(0, 229, 255, 0.3);
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.1);
-        }
-
-        h2 {
-            margin-top: 0;
-            font-size: 18px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-left: 3px solid var(--accent-color);
-            padding-left: 10px;
-            margin-bottom: 20px;
-        }
-
-        .mfd-title {
-            border-left-color: var(--mfd-color);
-            color: var(--mfd-color);
-        }
-
+        body { background: #050507; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .panel { background: rgba(20, 20, 25, 0.9); border: 1px solid #333; padding: 20px; border-radius: 10px; width: 100%; max-width: 500px; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            color: #aaa;
-            text-transform: uppercase;
-            margin-bottom: 6px;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            background: rgba(28, 29, 36, 0.8);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: white;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .mfd-panel input:focus, .mfd-panel select:focus {
-            border-color: var(--mfd-color);
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        button:hover { background: #cc3232; }
-
-        .driver-card {
-            background: linear-gradient(135deg, rgba(26, 28, 35, 0.9) 0%, rgba(17, 18, 22, 0.9) 100%);
-            border-left: 4px solid var(--mfd-color);
-        }
-
-        .driver-card .status {
-            display: inline-block;
-            padding: 4px 8px;
-            background: rgba(0, 229, 255, 0.1);
-            color: var(--mfd-color);
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
-        /* Стили калькулятора */
-        .mfd-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        @media (max-width: 600px) { .mfd-grid { grid-template-columns: 1fr; } }
-
-        .mfd-results {
-            background: rgba(5, 10, 15, 0.6);
-            border: 1px dashed rgba(0, 229, 255, 0.2);
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-        .mfd-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 14px;
-        }
-        .mfd-val { font-weight: bold; color: var(--mfd-color); }
-        .mfd-advise {
-            background: rgba(0, 229, 255, 0.05);
-            color: #d4f8ff;
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 10px;
-            font-size: 13px;
-            border-left: 3px solid var(--mfd-color);
-        }
-
-        .lobbies-feed { display: flex; flex-direction: column; gap: 15px; }
-        .lobby-card {
-            background: rgba(30, 31, 38, 0.6);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-        }
-        .lobby-header {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 12px;
-        }
-        .track-name { font-weight: bold; font-size: 16px; }
-        .lobby-time { color: var(--accent-color); font-weight: bold; }
-        .lobby-body p { margin: 6px 0; font-size: 14px; }
-        .lobby-comment {
-            background: rgba(10, 10, 12, 0.5);
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-style: italic;
-            color: #aaa;
-        }
-
-        .switch-auth {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 13px;
-            color: #888;
-            cursor: pointer;
-        }
-        .switch-auth span { color: var(--accent-color); text-decoration: underline; }
+        input { width: 100%; padding: 10px; background: #111; border: 1px solid #444; color: #fff; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #ff3e3e; border: none; color: white; cursor: pointer; font-weight: bold; }
+        #form-register { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="bg-slider">
-        <div class="bg-slide track-bg"></div>
-        <div class="bg-slide car-bg"></div>
-    </div>
+    <h1>GT7 NETWORK // LOBBY HUB</h1>
+    <div id="user-status">Ожидание авторизации...</div>
 
-    <header>
-        <h1>GT7 Network // Hub & MFD</h1>
-        <div id="user-status" style="font-size: 14px;">Ожидание авторизации</div>
-    </header>
-
-    <div class="hub-container">
-        
-        <div class="left-column" style="display: flex; flex-direction: column; gap: 25px;">
-            
-            <div id="auth-panel" class="panel">
-                <h2 id="auth-title">Регистрация пилота</h2>
-                <form id="auth-form" onsubmit="handleAuth(event)">
-                    <div class="form-group">
-                        <label for="psn-id">PSN ID</label>
-                        <input type="text" id="psn-id" placeholder="Например: PRO_DRIVER" required>
-                    </div>
-                    <div class="form-group" id="car-group">
-                        <label for="car-model">Основной болид</label>
-                        <input type="text" id="car-model" placeholder="Porsche 911 GT3 R (992)" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="pilot-password">Пароль пилота</label>
-                        <input type="password" id="pilot-password" placeholder="••••••••" required>
-                    </div>
-                    <button type="submit" id="auth-btn">Создать профиль</button>
-                </form>
-                <div class="switch-auth" onclick="toggleAuthMode()">
-                    Уже есть профиль? <span id="switch-text">Войти в хаб</span>
-                </div>
-            </div>
-
-            <div id="profile-panel" class="panel driver-card" style="display: none;">
-                <h2>Текущий пилот</h2>
-                <div class="status">В Сети</div>
-                <p style="margin: 15px 0 5px 0; font-size: 18px; font-weight: bold;" id="profile-psn"></p>
-                <p style="margin: 0; font-size: 14px; color: #aaa;" id="profile-car"></p>
-                <button onclick="logout()" style="margin-top: 20px; background: #24252d; font-size: 12px; padding: 8px;">Выйти из хаба</button>
-            </div>
-
-            <div id="create-lobby-panel" class="panel" style="display: none;">
-                <h2>Открыть заезд</h2>
-                <form id="lobby-form" onsubmit="createLobby(event)">
-                    <div class="form-group">
-                        <label for="lobby-track">Трасса заезда</label>
-                        <select id="lobby-track">
-                            <option value="Nürburgring Nordschleife">Nürburgring Nordschleife</option>
-                            <option value="Spa-Francorchamps">Spa-Francorchamps</option>
-                            <option value="Sarthe (Le Mans)">Circuit de la Sarthe</option>
-                            <option value="Suzuka Circuit">Suzuka Circuit</option>
-                            <option value="Tsukuba">Tsukuba Circuit</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="lobby-car">Ограничения по авто / Класс</label>
-                        <input type="text" id="lobby-car" placeholder="Gr.3 / Свободный выбор" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="lobby-comment">Комментарий к лобби</label>
-                        <textarea id="lobby-comment" rows="3" placeholder="Чистая гонка, старт в 21:00..."></textarea>
-                    </div>
-                    <button type="submit">Опубликовать в сеть</button>
-                </form>
-            </div>
-
+    <div id="auth-panel" class="panel">
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button onclick="switchTab('login')" style="background: #ff3e3e;">Вход</button>
+            <button onclick="switchTab('register')" style="background: #333;">Регистрация</button>
         </div>
 
-        <div class="right-column" style="display: flex; flex-direction: column; gap: 25px;">
-            
-            <div class="panel mfd-panel">
-                <h2 class="mfd-title">Инженерный MFD-Калькулятор Стратегии</h2>
-                <div class="mfd-grid">
-                    <div class="form-group">
-                        <label>Тип заезда</label>
-                        <select id="calc-type" onchange="toggleCalcType(); calculateStrategy();">
-                            <option value="laps">Дистанция (Круги)</option>
-                            <option value="time">Таймер (Минуты)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label id="calc-length-label">Количество кругов</label>
-                        <input type="number" id="calc-length" value="10" min="1" oninput="calculateStrategy()">
-                    </div>
-                    <div class="form-group" id="calc-laptime-group" style="display: none;">
-                        <label>Ср. время круга (секунды)</label>
-                        <input type="number" id="calc-laptime" value="120" min="1" oninput="calculateStrategy()">
-                    </div>
-                    <div class="form-group">
-                        <label>Базовый расход (л/круг)</label>
-                        <input type="number" id="calc-base-fuel" value="6.0" step="0.1" min="0.1" oninput="calculateStrategy()">
-                    </div>
-                    <div class="form-group">
-                        <label>Множитель топлива (Расход x)</label>
-                        <input type="number" id="calc-multiplier" value="5" min="1" max="20" oninput="calculateStrategy()">
-                    </div>
-                    <div class="form-group">
-                        <label>Топливная карта (Fuel Map)</label>
-                        <select id="calc-map" onchange="calculateStrategy()">
-                            <option value="1">FM1 (Макс. мощность / 100%)</option>
-                            <option value="2">FM2 (Экономия / ~92%)</option>
-                            <option value="3">FM3 (Экономия / ~85%)</option>
-                            <option value="4">FM4 (Экономия / ~78%)</option>
-                            <option value="5">FM5 (Бедная смесь / ~72%)</option>
-                            <option value="6">FM6 (Макс. сбережение / ~65%)</option>
-                        </select>
-                    </div>
-                </div>
+        <form id="form-login" onsubmit="handleAuth(event, 'login')">
+            <input type="text" id="l-psn" placeholder="PSN ID" required><br><br>
+            <input type="password" id="l-pass" placeholder="Пароль" required><br><br>
+            <button type="submit">АВТОРИЗОВАТЬСЯ</button>
+        </form>
 
-                <div class="mfd-results">
-                    <div class="mfd-row"><span>Фактический расход на круг:</span> <span class="mfd-val" id="res-fuel-per-lap">0.00 л</span></div>
-                    <div class="mfd-row"><span>Запас хода на баке (100л):</span> <span class="mfd-val" id="res-laps-per-tank">0.0 кругов</span></div>
-                    <div class="mfd-row"><span>Всего кругов в гонке:</span> <span class="mfd-val" id="res-total-laps">0</span></div>
-                    <div class="mfd-row"><span>Требуется литров на заезд:</span> <span class="mfd-val" id="res-total-fuel">0.0 л</span></div>
-                    <div class="mfd-row"><span>Минимум пит-стопов:</span> <span class="mfd-val" id="res-pitstops" style="color: #ff3e3e;">0</span></div>
-                    <div class="mfd-advise" id="res-advise">Инженерные рекомендации появятся после ввода параметров...</div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <h2>Текущие лобби в сети (Активны 6 часов)</h2>
-                <div id="lobbies-container" class="lobbies-feed"></div>
-            </div>
-
-        </div>
-
+        <form id="form-register" onsubmit="handleAuth(event, 'register')">
+            <input type="text" id="r-psn" placeholder="PSN ID" required><br><br>
+            <input type="text" id="r-car" placeholder="Болид" required><br><br>
+            <input type="password" id="r-pass" placeholder="Пароль" required><br><br>
+            <button type="submit">СОЗДАТЬ ПРОФИЛЬ</button>
+        </form>
     </div>
 
-   <script>
-        const SUPABASE_URL = 'https://fbcnnieqieyzsfipckl.supabase.co';
+    <script>
+        // !!! ВСТАВЬ СЮДА СВОИ ДАННЫЕ ИЗ SUPABASE !!!
+        const SUPABASE_URL = 'https://fbcnnieqieyvzsfipckl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_8IgPV_lCbhc2E2s07k-NfQ_7oMEoHIC';
         
-        let db; // Переименовали переменную из supabase в db, чтобы не было конфликта!
-        try {
-            if (!window.supabase) {
-                console.error("КРИТИЧЕСКАЯ ОШИБКА: Supabase не загрузился по сети!");
-                alert("Ошибка: Скрипт базы данных не смог загрузиться. Проверьте интернет-соединение.");
-            } else {
-                if (typeof window.supabaseInstance === 'undefined') {
-                    window.supabaseInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                }
-                db = window.supabaseInstance;
-            }
-        } catch(e) {
-            console.error("Ошибка инициализации клиента:", e);
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function switchTab(mode) {
+            document.getElementById('form-login').style.display = (mode === 'login') ? 'block' : 'none';
+            document.getElementById('form-register').style.display = (mode === 'register') ? 'block' : 'none';
         }
 
-        let currentPilot = JSON.parse(sessionStorage.getItem('gt7_logged_pilot')) || null;
-        let isLoginMode = false; 
-
-        function playGTClick() {
+        async function handleAuth(e, mode) {
+            e.preventDefault();
             try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const now = ctx.currentTime;
-                const playNode = (freq, start, duration, vol) => {
-                    const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(freq, start);
-                    gain.gain.setValueAtTime(vol, start); gain.gain.exponentialRampToValueAtTime(0.00001, start + duration);
-                    osc.connect(gain); gain.connect(ctx.destination); osc.start(start); osc.stop(start + duration);
-                };
-                playNode(1550, now, 0.04, 0.03); playNode(1950, now + 0.02, 0.03, 0.02);
-            } catch(e) {}
-        }
-
-        // --- ЛОГИКА КАЛЬКУЛЯТОРА ---
-        function toggleCalcType() {
-            const type = document.getElementById('calc-type').value;
-            const label = document.getElementById('calc-length-label');
-            const laptimeGroup = document.getElementById('calc-laptime-group');
-            
-            if (type === 'laps') {
-                label.innerText = "Количество кругов";
-                laptimeGroup.style.display = "none";
-            } else {
-                label.innerText = "Время гонки (минуты)";
-                laptimeGroup.style.display = "block";
-            }
-        }
-
-        function calculateStrategy() {
-            const type = document.getElementById('calc-type').value;
-            const length = parseFloat(document.getElementById('calc-length').value) || 0;
-            const lapTime = parseFloat(document.getElementById('calc-laptime').value) || 0;
-            const baseFuel = parseFloat(document.getElementById('calc-base-fuel').value) || 0;
-            const mult = parseFloat(document.getElementById('calc-multiplier').value) || 1;
-            const fm = parseInt(document.getElementById('calc-map').value) || 1;
-
-            const fmModifiers = { 1: 1.0, 2: 0.92, 3: 0.85, 4: 0.78, 5: 0.72, 6: 0.65 };
-            const modifier = fmModifiers[fm];
-
-            const fuelPerLap = baseFuel * mult * modifier;
-            const lapsPerTank = fuelPerLap > 0 ? (100 / fuelPerLap) : 0;
-
-            let totalLaps = 0;
-            if (type === 'laps') {
-                totalLaps = length;
-            } else {
-                totalLaps = lapTime > 0 ? Math.ceil((length * 60) / lapTime) : 0;
-            }
-
-            const totalFuelNeeded = totalLaps * fuelPerLap;
-            
-            let pitStops = 0;
-            if (lapsPerTank > 0 && totalLaps > lapsPerTank) {
-                pitStops = Math.ceil(totalLaps / lapsPerTank) - 1;
-            }
-
-            document.getElementById('res-fuel-per-lap').innerText = `${fuelPerLap.toFixed(2)} л`;
-            document.getElementById('res-laps-per-tank').innerText = `${lapsPerTank.toFixed(1)} кр.`;
-            document.getElementById('res-total-laps').innerText = totalLaps;
-            document.getElementById('res-total-fuel').innerText = `${totalFuelNeeded.toFixed(1)} л`;
-            document.getElementById('res-pitstops').innerText = pitStops;
-
-            const adviseBox = document.getElementById('res-advise');
-            if (totalLaps === 0) {
-                adviseBox.innerText = "Задайте дистанцию для построения тактики.";
-            } else if (pitStops === 0) {
-                adviseBox.innerText = "📋 Тактика «One-Stint»: Топлива хватает до финиша без пит-стопов. Можно ехать на агрессивной карте FM1!";
-            } else {
-                const savedOnFM6 = baseFuel * mult * fmModifiers[6];
-                const lapsOnFM6 = 100 / savedOnFM6;
-                const pitsOnFM6 = Math.ceil(totalLaps / lapsOnFM6) - 1;
-                
-                if (pitsOnFM6 < pitStops) {
-                    adviseBox.innerText = `💡 Инженерный совет: Экономия на FM6 позволит снизить число пит-стопов до ${pitsOnFM6}! Рассмотрите стратегию сбережения ресурсов.`;
+                if (mode === 'login') {
+                    const psn = document.getElementById('l-psn').value;
+                    const pass = document.getElementById('l-pass').value;
+                    const { data, error } = await db.from('gt7_accounts').select('*').eq('psn_id', psn).eq('password', pass);
+                    if (error || !data.length) throw new Error("Неверный логин или пароль");
+                    alert("Добро пожаловать, " + psn);
                 } else {
-                    adviseBox.innerText = `📋 Стратегия мульти-стоп: Дистанция требует ${pitStops} пит-стоп(ов). Идите в темпе на FM1 или FM2, экономия смеси не уберёт лишнюю дозаправку.`;
-                }
-            }
-        }
-
-        // --- ЛОГИКА АВТОРИЗАЦИИ ---
-        function toggleAuthMode() {
-            playGTClick();
-            isLoginMode = !isLoginMode;
-            const title = document.getElementById('auth-title');
-            const btn = document.getElementById('auth-btn');
-            const switchTxt = document.getElementById('switch-text');
-            const carGroup = document.getElementById('car-group');
-
-            document.getElementById('auth-form').reset();
-
-            if (isLoginMode) {
-                title.innerText = "Вход в хаб";
-                btn.innerText = "Авторизоваться";
-                switchTxt.innerText = "Создать профиль";
-                if(carGroup) carGroup.style.display = "none";
-                const carInput = document.getElementById('car-model');
-                if(carInput) carInput.removeAttribute('required');
-            } else {
-                title.innerText = "Регистрация пилота";
-                btn.innerText = "Создать профиль";
-                switchTxt.innerText = "Войти в хаб";
-                if(carGroup) carGroup.style.display = "block";
-                const carInput = document.getElementById('car-model');
-                if(carInput) carInput.setAttribute('required', 'required');
-            }
-        }
-
-        async function handleAuth(event) {
-            event.preventDefault();
-            playGTClick();
-            
-            const psn = document.getElementById('psn-id').value.trim();
-            const carInput = document.getElementById('car-model');
-            const car = carInput ? carInput.value.trim() : '';
-            const password = document.getElementById('pilot-password').value.trim();
-
-            console.log("Отправка запроса. Режим входа:", isLoginMode, "Логин:", psn);
-
-            try {
-                if (isLoginMode) {
-                    const { data, error } = await db
-                        .from('gt7_accounts')
-                        .select('*')
-                        .eq('psn_id', psn)
-                        .eq('password', password);
-
-                    if (error) {
-                        console.error("Ошибка Supabase при авторизации:", error);
-                        alert(`Ошибка базы: ${error.message} (Код: ${error.code})`);
-                        return;
-                    }
-
-                    if (!data || data.length === 0) {
-                        alert("Неверный PSN ID или пароль пилота! Проверьте регистр букв.");
-                        return;
-                    }
-                    
-                    console.log("Успешный вход пилота:", data[0].psn_id);
-                    loginSuccess(data[0]);
-                } else {
-                    const { data, error } = await db
-                        .from('gt7_accounts')
-                        .insert([{ psn_id: psn, car_model: car, password: password }])
-                        .select();
-
-                    if (error) {
-                        console.error("Ошибка Supabase при регистрации:", error);
-                        if (error.code === '23505') {
-                            alert("Этот PSN ID уже занят! Кликните снизу 'Войти в хаб' и введите пароль.");
-                        } else { 
-                            alert(`Ошибка БД при регистрации: ${error.message} (Код: ${error.code})`); 
-                        }
-                        return;
-                    }
-                    
-                    if (data && data.length > 0) {
-                        alert("Профиль успешно защищен паролем и сохранен!");
-                        loginSuccess(data[0]);
-                    }
+                    const psn = document.getElementById('r-psn').value;
+                    const car = document.getElementById('r-car').value;
+                    const pass = document.getElementById('r-pass').value;
+                    const { error } = await db.from('gt7_accounts').insert([{ psn_id: psn, car_model: car, password: pass }]);
+                    if (error) throw error;
+                    alert("Профиль создан! Теперь войдите.");
                 }
             } catch (err) {
-                console.error("Критический сбой JS скрипта:", err);
-                alert("Ошибка обработки формы: " + err.message);
+                alert("Ошибка: " + err.message);
+                console.error(err);
             }
         }
-
-        function loginSuccess(pilotData) {
-            currentPilot = pilotData;
-            sessionStorage.setItem('gt7_logged_pilot', JSON.stringify(pilotData));
-            updateUI();
-        }
-
-        function logout() {
-            playGTClick();
-            currentPilot = null;
-            sessionStorage.removeItem('gt7_logged_pilot');
-            updateUI();
-        }
-
-        function updateUI() {
-            const authPanel = document.getElementById('auth-panel');
-            const profilePanel = document.getElementById('profile-panel');
-            const lobbyPanel = document.getElementById('create-lobby-panel');
-
-            if (currentPilot) {
-                if(authPanel) authPanel.style.display = "none";
-                if(profilePanel) profilePanel.style.display = "block";
-                if(lobbyPanel) lobbyPanel.style.display = "block";
-                document.getElementById('profile-psn').innerText = currentPilot.psn_id;
-                document.getElementById('profile-car').innerText = currentPilot.car_model || 'Машина не выбрана';
-                document.getElementById('user-status').innerText = `Пилот: ${currentPilot.psn_id}`;
-            } else {
-                if(authPanel) authPanel.style.display = "block";
-                if(profilePanel) profilePanel.style.display = "none";
-                if(lobbyPanel) lobbyPanel.style.display = "none";
-                document.getElementById('user-status').innerText = "Ожидание авторизации";
-            }
-        }
-
-        async function createLobby(event) {
-            event.preventDefault();
-            playGTClick();
-            if (!currentPilot) return;
-
-            const track = document.getElementById('lobby-track').value;
-            const car = document.getElementById('lobby-car').value.trim();
-            const comment = document.getElementById('lobby-comment').value.trim();
-
-            try {
-                const { error } = await db
-                    .from('gt7_lobbies')
-                    .insert([{
-                        psn_id: currentPilot.psn_id,
-                        track_name: track,
-                        car_model: car,
-                        comment: comment
-                    }]);
-
-                if (error) throw error;
-                document.getElementById('lobby-form').reset();
-                loadActiveLobbies();
-            } catch (err) {
-                alert("Ошибка публикации: " + err.message);
-            }
-        }
-
-        async function loadActiveLobbies() {
-            try {
-                const hoursLimit = 6;
-                const timeCutoff = new Date(Date.now() - hoursLimit * 60 * 60 * 1000).toISOString();
-
-                const { data: lobbies, error } = await db
-                    .from('gt7_lobbies')
-                    .select('*')
-                    .gt('created_at', timeCutoff)
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                const lobbiesContainer = document.getElementById('lobbies-container');
-                if (!lobbiesContainer) return;
-                lobbiesContainer.innerHTML = ''; 
-
-                if (!lobbies || lobbies.length === 0) {
-                    lobbiesContainer.innerHTML = `
-                        <div style="text-align: center; color: #666; padding: 40px 20px;">
-                            <p style="font-size: 24px; margin-bottom: 5px;">🚦</p>
-                            <p style="margin: 0;">Сейчас в сети нет активных заездов.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                lobbies.forEach(lobby => {
-                    const lobbyCard = document.createElement('div');
-                    lobbyCard.className = 'lobby-card';
-                    const lobbyTime = new Date(lobby.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                    lobbyCard.innerHTML = `
-                        <div class="lobby-header">
-                            <span class="track-name">📍 ${lobby.track_name}</span>
-                            <span class="lobby-time">${lobbyTime}</span>
-                        </div>
-                        <div class="lobby-body">
-                            <p><strong>Организатор:</strong> PSN: <span style="color: #00e5ff;">${lobby.psn_id}</span></p>
-                            <p><strong>Регламент по авто:</strong> ${lobby.car_model}</p>
-                            ${lobby.comment ? `<p class="lobby-comment">💬 ${lobby.comment}</p>` : ''}
-                        </div>
-                    `;
-                    lobbiesContainer.appendChild(lobbyCard);
-                });
-            } catch (err) {
-                console.error('Ошибка ленты лобби:', err.message);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            updateUI();
-            calculateStrategy();
-            loadActiveLobbies();
-            setInterval(loadActiveLobbies, 60000);
-        });
     </script>
 </body>
 </html>
