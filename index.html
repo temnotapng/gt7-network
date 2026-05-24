@@ -407,20 +407,28 @@
 
     </div>
 
-    <script>
+   <script>
         const SUPABASE_URL = 'https://fbcnnieqieyzsfipckl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_8IgPV_lCbhc2E2s07k-NfQ_7oMEoHIC';
         
-        let supabase;
-        if (typeof window.supabaseInstance === 'undefined') {
-            window.supabaseInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let db; // Переименовали переменную из supabase в db, чтобы не было конфликта!
+        try {
+            if (!window.supabase) {
+                console.error("КРИТИЧЕСКАЯ ОШИБКА: Supabase не загрузился по сети!");
+                alert("Ошибка: Скрипт базы данных не смог загрузиться. Проверьте интернет-соединение.");
+            } else {
+                if (typeof window.supabaseInstance === 'undefined') {
+                    window.supabaseInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                }
+                db = window.supabaseInstance;
+            }
+        } catch(e) {
+            console.error("Ошибка инициализации клиента:", e);
         }
-        supabase = window.supabaseInstance;
 
         let currentPilot = JSON.parse(sessionStorage.getItem('gt7_logged_pilot')) || null;
         let isLoginMode = false; 
 
-        // СИНТЕЗАТОР ГОНОЧНЫХ SFX
         function playGTClick() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -451,7 +459,6 @@
         }
 
         function calculateStrategy() {
-            // Подхватываем значения
             const type = document.getElementById('calc-type').value;
             const length = parseFloat(document.getElementById('calc-length').value) || 0;
             const lapTime = parseFloat(document.getElementById('calc-laptime').value) || 0;
@@ -459,11 +466,9 @@
             const mult = parseFloat(document.getElementById('calc-multiplier').value) || 1;
             const fm = parseInt(document.getElementById('calc-map').value) || 1;
 
-            // Коэффициенты экономии для топливных карт (FM1 = 100%, FM6 = 65%)
             const fmModifiers = { 1: 1.0, 2: 0.92, 3: 0.85, 4: 0.78, 5: 0.72, 6: 0.65 };
             const modifier = fmModifiers[fm];
 
-            // Расчеты
             const fuelPerLap = baseFuel * mult * modifier;
             const lapsPerTank = fuelPerLap > 0 ? (100 / fuelPerLap) : 0;
 
@@ -476,20 +481,17 @@
 
             const totalFuelNeeded = totalLaps * fuelPerLap;
             
-            // Расчёт пит-стопов (ёмкость бака фиксирована на 100 литров)
             let pitStops = 0;
             if (lapsPerTank > 0 && totalLaps > lapsPerTank) {
                 pitStops = Math.ceil(totalLaps / lapsPerTank) - 1;
             }
 
-            // Вывод данных на экран
             document.getElementById('res-fuel-per-lap').innerText = `${fuelPerLap.toFixed(2)} л`;
             document.getElementById('res-laps-per-tank').innerText = `${lapsPerTank.toFixed(1)} кр.`;
             document.getElementById('res-total-laps').innerText = totalLaps;
             document.getElementById('res-total-fuel').innerText = `${totalFuelNeeded.toFixed(1)} л`;
             document.getElementById('res-pitstops').innerText = pitStops;
 
-            // Инженерные советы
             const adviseBox = document.getElementById('res-advise');
             if (totalLaps === 0) {
                 adviseBox.innerText = "Задайте дистанцию для построения тактики.";
@@ -508,7 +510,7 @@
             }
         }
 
-        // --- ЛОГИКА АВТОРИЗАЦИИ И СЕТИ ---
+        // --- ЛОГИКА АВТОРИЗАЦИИ ---
         function toggleAuthMode() {
             playGTClick();
             isLoginMode = !isLoginMode;
@@ -523,57 +525,75 @@
                 title.innerText = "Вход в хаб";
                 btn.innerText = "Авторизоваться";
                 switchTxt.innerText = "Создать профиль";
-                carGroup.style.display = "none";
-                document.getElementById('car-model').removeAttribute('required');
+                if(carGroup) carGroup.style.display = "none";
+                const carInput = document.getElementById('car-model');
+                if(carInput) carInput.removeAttribute('required');
             } else {
                 title.innerText = "Регистрация пилота";
                 btn.innerText = "Создать профиль";
                 switchTxt.innerText = "Войти в хаб";
-                carGroup.style.display = "block";
-                document.getElementById('car-model').setAttribute('required', 'required');
+                if(carGroup) carGroup.style.display = "block";
+                const carInput = document.getElementById('car-model');
+                if(carInput) carInput.setAttribute('required', 'required');
             }
         }
 
         async function handleAuth(event) {
             event.preventDefault();
             playGTClick();
+            
             const psn = document.getElementById('psn-id').value.trim();
-            const car = document.getElementById('car-model').value.trim();
+            const carInput = document.getElementById('car-model');
+            const car = carInput ? carInput.value.trim() : '';
             const password = document.getElementById('pilot-password').value.trim();
+
+            console.log("Отправка запроса. Режим входа:", isLoginMode, "Логин:", psn);
 
             try {
                 if (isLoginMode) {
-                    const { data, error } = await supabase
+                    const { data, error } = await db
                         .from('gt7_accounts')
                         .select('*')
                         .eq('psn_id', psn)
-                        .eq('password', password)
-                        .single();
-
-                    if (error || !data) {
-                        alert("Неверный PSN ID или пароль пилота!");
-                        return;
-                    }
-                    loginSuccess(data);
-                } else {
-                    const { data, error } = await supabase
-                        .from('gt7_accounts')
-                        .insert([{ psn_id: psn, car_model: car, password: password }])
-                        .select()
-                        .single();
+                        .eq('password', password);
 
                     if (error) {
-                        if (error.code === '23505') {
-                            alert("Этот PSN ID уже занят! Выберите вход в систему.");
-                        } else { throw error; }
+                        console.error("Ошибка Supabase при авторизации:", error);
+                        alert(`Ошибка базы: ${error.message} (Код: ${error.code})`);
                         return;
                     }
-                    alert("Профиль успешно защищен паролем и сохранен!");
-                    loginSuccess(data);
+
+                    if (!data || data.length === 0) {
+                        alert("Неверный PSN ID или пароль пилота! Проверьте регистр букв.");
+                        return;
+                    }
+                    
+                    console.log("Успешный вход пилота:", data[0].psn_id);
+                    loginSuccess(data[0]);
+                } else {
+                    const { data, error } = await db
+                        .from('gt7_accounts')
+                        .insert([{ psn_id: psn, car_model: car, password: password }])
+                        .select();
+
+                    if (error) {
+                        console.error("Ошибка Supabase при регистрации:", error);
+                        if (error.code === '23505') {
+                            alert("Этот PSN ID уже занят! Кликните снизу 'Войти в хаб' и введите пароль.");
+                        } else { 
+                            alert(`Ошибка БД при регистрации: ${error.message} (Код: ${error.code})`); 
+                        }
+                        return;
+                    }
+                    
+                    if (data && data.length > 0) {
+                        alert("Профиль успешно защищен паролем и сохранен!");
+                        loginSuccess(data[0]);
+                    }
                 }
             } catch (err) {
-                console.error("Ошибка базы:", err.message);
-                alert("Ошибка подключения: " + err.message);
+                console.error("Критический сбой JS скрипта:", err);
+                alert("Ошибка обработки формы: " + err.message);
             }
         }
 
@@ -596,18 +616,17 @@
             const lobbyPanel = document.getElementById('create-lobby-panel');
 
             if (currentPilot) {
-                authPanel.style.display = "none";
-                profilePanel.style.display = "block";
-                lobbyPanel.style.display = "block";
+                if(authPanel) authPanel.style.display = "none";
+                if(profilePanel) profilePanel.style.display = "block";
+                if(lobbyPanel) lobbyPanel.style.display = "block";
                 document.getElementById('profile-psn').innerText = currentPilot.psn_id;
                 document.getElementById('profile-car').innerText = currentPilot.car_model || 'Машина не выбрана';
                 document.getElementById('user-status').innerText = `Пилот: ${currentPilot.psn_id}`;
             } else {
-                authPanel.style.display = "block";
-                profilePanel.style.display = "none";
-                lobbyPanel.style.display = "none";
+                if(authPanel) authPanel.style.display = "block";
+                if(profilePanel) profilePanel.style.display = "none";
+                if(lobbyPanel) lobbyPanel.style.display = "none";
                 document.getElementById('user-status').innerText = "Ожидание авторизации";
-                document.getElementById('auth-form').reset();
             }
         }
 
@@ -621,7 +640,7 @@
             const comment = document.getElementById('lobby-comment').value.trim();
 
             try {
-                const { error } = await supabase
+                const { error } = await db
                     .from('gt7_lobbies')
                     .insert([{
                         psn_id: currentPilot.psn_id,
@@ -643,7 +662,7 @@
                 const hoursLimit = 6;
                 const timeCutoff = new Date(Date.now() - hoursLimit * 60 * 60 * 1000).toISOString();
 
-                const { data: lobbies, error } = await supabase
+                const { data: lobbies, error } = await db
                     .from('gt7_lobbies')
                     .select('*')
                     .gt('created_at', timeCutoff)
@@ -690,7 +709,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             updateUI();
-            calculateStrategy(); // Первичный запуск вычислений
+            calculateStrategy();
             loadActiveLobbies();
             setInterval(loadActiveLobbies, 60000);
         });
