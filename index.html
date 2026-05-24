@@ -284,21 +284,21 @@
             border: 1px solid var(--panel-border);
         }
 
-        /* ИНЖЕНЕРНАЯ ТЕЛЕМЕТРИЯ (КАЛЬКУЛЯТОР) */
+        /* ИНЖЕНЕРНАЯ ТЕЛЕМЕТРИЯ (6-NODES MFD) */
         .mfd-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 15px;
             margin-top: 25px;
         }
         .mfd-node {
             background: rgba(0, 0, 0, 0.4);
-            padding: 18px;
+            padding: 16px;
             border-radius: 8px;
             border: 1px solid var(--panel-border);
         }
-        .mfd-node .label { font-size: 0.7em; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
-        .mfd-node .value { font-family: 'JetBrains+Mono', monospace; font-size: 1.6em; font-weight: 700; color: #fff; margin-top: 8px; }
+        .mfd-node .label { font-size: 0.65em; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+        .mfd-node .value { font-family: 'JetBrains+Mono', monospace; font-size: 1.4em; font-weight: 700; color: #fff; margin-top: 8px; }
 
         /* СТИЛЬ ЛЕНТЫ ГОНОК */
         .feed-stack { display: flex; flex-direction: column; gap: 20px; }
@@ -449,6 +449,7 @@
                     <h3>Параметры сессии</h3>
                     <label>Режим заезда</label>
                     <select id="calcRaceMode" onchange="toggleCalcFields()"><option value="laps">Фиксированная дистанция (круги)</option><option value="time">Эндуранс-марафон (таймер)</option></select>
+                    
                     <div id="calcLapsGroup">
                         <label>Количество кругов в гонке</label>
                         <input type="number" id="calcRaceLaps" value="12" min="1" oninput="calculateStrategy()">
@@ -459,20 +460,39 @@
                         <label>Планируемое время круга</label>
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 25px;"><input type="number" id="calcLapMin" value="1" min="0" oninput="calculateStrategy()"><input type="number" id="calcLapSec" value="45" min="0" max="59" oninput="calculateStrategy()"></div>
                     </div>
-                    <label>Множитель расхода топлива (Fuel Rate)</label>
-                    <select id="calcFuelRate" onchange="calculateStrategy()"><option value="1">x1</option><option value="2">x2</option><option value="3">x3</option><option value="5" selected>x5 (Daily Race)</option><option value="10">x10</option></select>
-                    <label>Расход за 1 круг на FM1 (% от бака)</label>
-                    <input type="number" id="calcFuelPerLapPercent" value="4.5" step="0.1" oninput="calculateStrategy()">
-                    <label>Топливная карта (Fuel Map)</label>
-                    <select id="calcFuelMap" onchange="calculateStrategy()"><option value="1">FM1 — Power (100% мощности)</option><option value="2">FM2 — (93% расхода)</option><option value="3">FM3 — (86% расхода)</option><option value="6">FM6 — Lean (62% расхода)</option></select>
+
+                    <div style="border-top: 1px dashed var(--panel-border); margin: 20px 0; padding-top: 15px;">
+                        <h4 style="font-size:0.9em; color:var(--accent-blue); margin-bottom: 15px;">Телеметрия топлива</h4>
+                        <label>Множитель расхода топлива (Fuel Rate)</label>
+                        <select id="calcFuelRate" onchange="calculateStrategy()"><option value="1">x1</option><option value="2">x2</option><option value="3">x3</option><option value="5" selected>x5 (Daily Race)</option><option value="10">x10</option></select>
+                        <label>Базовый расход на FM1 (% от бака за 1 круг)</label>
+                        <input type="number" id="calcFuelPerLapPercent" value="4.5" step="0.1" oninput="calculateStrategy()">
+                        <label>Топливная карта (Fuel Map)</label>
+                        <select id="calcFuelMap" onchange="calculateStrategy()"><option value="1">FM1 — Power (100% мощности)</option><option value="2">FM2 — (93% расхода)</option><option value="3">FM3 — (86% расхода)</option><option value="6">FM6 — Lean (62% расхода)</option></select>
+                    </div>
+
+                    <div style="border-top: 1px dashed var(--panel-border); margin: 20px 0; padding-top: 15px;">
+                        <h4 style="font-size:0.9em; color:#f43f5e; margin-bottom: 15px;">Телеметрия резины</h4>
+                        <label>Состав шин (Tire Compound)</label>
+                        <select id="calcTireCompound" onchange="calculateStrategy()">
+                            <option value="soft" selected>Racing: Soft (Мягкие)</option>
+                            <option value="medium">Racing: Medium (Средние)</option>
+                            <option value="hard">Racing: Hard (Жесткие)</option>
+                        </select>
+                        <label>Множитель износа шин в лобби (Tire Rate)</label>
+                        <select id="calcTireRate" onchange="calculateStrategy()"><option value="1">x1</option><option value="2">x2</option><option value="4">x4</option><option value="6" selected>x6 (Стандарт Endurance)</option><option value="10">x10</option><option value="15">x15</option></select>
+                    </div>
                 </div>
-                <div class="pro-panel" style="background: rgba(15, 20, 30, 0.45);">
+
+                <div class="pro-panel" style="background: rgba(15, 20, 30, 0.45); position: sticky; top: 60px;">
                     <h3>Анализ телеметрии инженера</h3>
                     <div class="mfd-grid">
                         <div class="mfd-node"><div class="label">Кругов в гонке</div><div class="value" id="resTotalLaps">--</div></div>
-                        <div class="mfd-node"><div class="label">Расход за круг</div><div class="value" id="resActualPerLap">--</div></div>
-                        <div class="mfd-node"><div class="label">Автономия (кругов)</div><div class="value" id="resLapsPerTank">--</div></div>
-                        <div class="mfd-node"><div class="label">Пит-стопов</div><div class="value" id="resPitStops">--</div></div>
+                        <div class="mfd-node"><div class="label">Расход бака / круг</div><div class="value" id="resActualPerLap">--</div></div>
+                        <div class="mfd-node"><div class="label">Запас топлива (кругов)</div><div class="value" id="resLapsPerTank">--</div></div>
+                        <div class="mfd-node"><div class="label">Износ шин / круг</div><div class="value" id="resActualTireWear">--</div></div>
+                        <div class="mfd-node"><div class="label">Ресурс шин (кругов)</div><div class="value" id="resLapsPerTires">--</div></div>
+                        <div class="mfd-node"><div class="label">Всего пит-стопов</div><div class="value" id="resPitStops">--</div></div>
                     </div>
                     <div style="margin-top: 35px; border-top: 1px solid var(--panel-border); padding-top: 25px;"><span style="font-size: 0.7em; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Рекомендованная тактика:</span><div id="resStrategyTip" style="font-size: 0.95em; color: #e2e8f0; margin-top: 10px; line-height: 1.6;">--</div></div>
                 </div>
@@ -482,7 +502,7 @@
     </main>
 
 <script>
-    // СИСТЕМА ЛОГИНА И РЕГИСТРАЦИИ (Браузерная бд)
+    // СИСТЕМА ЛОГИНА И РЕГИСТРАЦИИ
     let currentPilot = JSON.parse(sessionStorage.getItem('gt7_logged_pilot')) || null;
 
     function checkAuth() {
@@ -500,7 +520,6 @@
         document.getElementById('registerFormContainer').style.display = showLogin ? 'none' : 'block';
     }
 
-    // Регистрация нового пилота
     document.getElementById('registerForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const username = document.getElementById('regUsername').value.trim();
@@ -510,23 +529,16 @@
         const sr = document.getElementById('regSr').value;
 
         let accounts = JSON.parse(localStorage.getItem('gt7_accounts')) || {};
-
-        if (accounts[username.toLowerCase()]) {
-            alert('Этот PSN ID уже зарегистрирован в системе!');
-            return;
-        }
+        if (accounts[username.toLowerCase()]) { alert('Этот PSN ID уже зарегистрирован!'); return; }
 
         accounts[username.toLowerCase()] = { username, password, car, dr, sr };
         localStorage.setItem('gt7_accounts', JSON.stringify(accounts));
-
         currentPilot = accounts[username.toLowerCase()];
         sessionStorage.setItem('gt7_logged_pilot', JSON.stringify(currentPilot));
-        
         alert('Лицензия FIA успешно создана!');
         checkAuth();
     });
 
-    // Вход под существующим аккаунтом
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const username = document.getElementById('loginUsername').value.trim().toLowerCase();
@@ -539,9 +551,7 @@
             currentPilot = account;
             sessionStorage.setItem('gt7_logged_pilot', JSON.stringify(currentPilot));
             checkAuth();
-        } else {
-            alert('Неверный PSN ID или пароль.');
-        }
+        } else { alert('Неверный PSN ID или пароль.'); }
     });
 
     function logout() {
@@ -559,7 +569,6 @@
         if(tabId === 'tab-calc') calculateStrategy();
     }
 
-    // ОБНОВЛЕНИЕ ДАННЫХ ПРОФИЛЯ
     function updateProfileUI() {
         if (!currentPilot) return;
         document.getElementById('sideName').innerText = currentPilot.username;
@@ -567,7 +576,6 @@
         document.getElementById('sideDR').innerText = 'DR: ' + currentPilot.dr;
         document.getElementById('sideSR').innerText = 'SR: ' + currentPilot.sr;
         document.getElementById('sideAvatar').innerText = currentPilot.username.substring(0,2).toUpperCase();
-
         document.getElementById('carInput').value = currentPilot.car;
         document.getElementById('drInput').value = currentPilot.dr;
         document.getElementById('srInput').value = currentPilot.sr;
@@ -576,23 +584,20 @@
     document.getElementById('profileForm').addEventListener('submit', function(e) {
         e.preventDefault();
         if (!currentPilot) return;
-
         currentPilot.car = document.getElementById('carInput').value;
         currentPilot.dr = document.getElementById('drInput').value;
         currentPilot.sr = document.getElementById('srInput').value;
 
-        // Пересохраняем и в сессии, и в локальной базе аккаунтов
         sessionStorage.setItem('gt7_logged_pilot', JSON.stringify(currentPilot));
         let accounts = JSON.parse(localStorage.getItem('gt7_accounts')) || {};
         accounts[currentPilot.username.toLowerCase()] = currentPilot;
         localStorage.setItem('gt7_accounts', JSON.stringify(accounts));
-
         updateProfileUI();
         renderFeed();
-        alert('Данные вашей лицензии обновлены.');
+        alert('Данные лицензии обновлены.');
     });
 
-    // ЛОГИКА MFD КАЛЬКУЛЯТОРА
+    // МОДЕРНИЗИРОВАННАЯ ЛОГИКА MFD КАЛЬКУЛЯТОРА
     function toggleCalcFields() {
         const mode = document.getElementById('calcRaceMode').value;
         document.getElementById('calcLapsGroup').style.display = mode === 'laps' ? 'block' : 'none';
@@ -602,15 +607,9 @@
 
     function calculateStrategy() {
         const mode = document.getElementById('calcRaceMode').value;
-        const fuelRate = parseFloat(document.getElementById('calcFuelRate').value) || 1;
-        const baseFuelPerLap = parseFloat(document.getElementById('calcFuelPerLapPercent').value) || 0;
-        const fuelMapVal = document.getElementById('calcFuelMap').value;
         
-        const mapModifiers = { '1': 1.0, '2': 0.93, '3': 0.86, '6': 0.62 };
-        const currentMapMod = mapModifiers[fuelMapVal] || 1.0;
-
+        // 1. Расчет общей дистанции
         let totalLaps = 0;
-
         if (mode === 'laps') {
             totalLaps = parseInt(document.getElementById('calcRaceLaps').value) || 0;
         } else {
@@ -620,30 +619,57 @@
             const totalLapSeconds = (lapMin * 60) + lapSec;
             if (totalLapSeconds > 0) totalLaps = Math.ceil((mins * 60) / totalLapSeconds);
         }
+        if (totalLaps <= 0) return;
 
-        if (totalLaps <= 0 || baseFuelPerLap <= 0) return;
+        // 2. Расчет Топлива
+        const fuelRate = parseFloat(document.getElementById('calcFuelRate').value) || 1;
+        const baseFuelPerLap = parseFloat(document.getElementById('calcFuelPerLapPercent').value) || 0;
+        const fuelMapVal = document.getElementById('calcFuelMap').value;
+        const mapModifiers = { '1': 1.0, '2': 0.93, '3': 0.86, '6': 0.62 };
+        const currentMapMod = mapModifiers[fuelMapVal] || 1.0;
 
         const actualFuelPerLap = baseFuelPerLap * fuelRate * currentMapMod;
         const lapsPerTank = Math.floor((100 / actualFuelPerLap) * 100) / 100;
-        const stopsRequired = Math.max(0, Math.ceil(totalLaps / (100 / actualFuelPerLap)) - 1);
 
+        // 3. Расчет Резины (Базовые константы износа GT7 для Gr.3 на круг)
+        const baseTireWear = { 'soft': 1.1, 'medium': 0.65, 'hard': 0.35 };
+        const selectedCompound = document.getElementById('calcTireCompound').value;
+        const tireRate = parseFloat(document.getElementById('calcTireRate').value) || 1;
+        
+        const actualTireWearPerLap = baseTireWear[selectedCompound] * tireRate;
+        // Считаем, что при 85% износа резина полностью теряет зацеп (критическое состояние в игре)
+        const lapsPerTireSet = Math.floor((85 / actualTireWearPerLap) * 100) / 100;
+
+        // 4. Определение лимитирующего гоночного фактора
+        const maxLapsPerStint = Math.min(lapsPerTank, lapsPerTireSet);
+        const stopsRequired = Math.max(0, Math.ceil(totalLaps / maxLapsPerStint) - 1);
+
+        // Вывод на MFD дисплей
         document.getElementById('resTotalLaps').innerText = totalLaps;
         document.getElementById('resActualPerLap').innerText = (Math.round(actualFuelPerLap * 10) / 10) + '%';
-        document.getElementById('resLapsPerTank').innerText = lapsPerTank;
+        document.getElementById('resLapsPerTank').innerText = lapsPerTank > totalLaps ? 'Весь заезд' : lapsPerTank + ' кр.';
+        document.getElementById('resActualTireWear').innerText = (Math.round(actualTireWearPerLap * 10) / 10) + '%';
+        document.getElementById('resLapsPerTires').innerText = lapsPerTireSet > totalLaps ? 'Весь заезд' : lapsPerTireSet + ' кр.';
         document.getElementById('resPitStops').innerText = stopsRequired;
 
+        // Генерация инженерной тактики
         let tipElement = document.getElementById('resStrategyTip');
         if (stopsRequired === 0) {
-            tipElement.innerHTML = `Топлива гарантированно хватает до финиша сессии. Стратегия «No-Pit». Переключение на экономичные карты не требуется, активируйте карту <strong style="color: #fff;">Fuel Map 1</strong> и атакуйте на пределе.`;
+            tipElement.innerHTML = `Ресурсов бака и прочности шин хватает до финиша. Стратегия <strong style="color:#34d399;">«Без пит-стопов»</strong>. Атакуйте в полную силу на карте FM1.`;
         } else {
-            const maxMapMod = mapModifiers['6'];
-            const economyFuelPerLap = baseFuelPerLap * fuelRate * maxMapMod;
-            const ecoStops = Math.max(0, Math.ceil(totalLaps / (100 / economyFuelPerLap)) - 1);
-            if (ecoStops < stopsRequired) {
-                tipElement.innerHTML = `В текущем режиме потребуется заезд на пит-стоп. <span style="color: #60a5fa;">Инженерный совет:</span> Переключение бортового компьютера на <strong style="color:#fff;">Fuel Map 6 (Lean)</strong> снизит расход до ${(Math.round(economyFuelPerLap*10)/10)}% за круг и позволит полностью убрать один пит-стоп.`;
+            let limitReason = lapsPerTank < lapsPerTireSet ? 'топливо (пустой бак)' : 'критический износ резины';
+            let stintLength = Math.floor(maxLapsPerStint);
+            
+            let advice = `Необходимая стратегия: <strong style="color:var(--accent-red);">${stopsRequired} пит-стоп(а)</strong>. Окно остановки открывается каждые <strong style="color:#fff;">${stintLength} кр.</strong> Главный ограничитель отрезка — <span style="color:#60a5fa;">${limitReason}</span>.<br><br>`;
+            
+            if (lapsPerTireSet < lapsPerTank && selectedCompound === 'soft') {
+                advice += `⚠️ <span style="color:#f43f5e;">Инженерное предупреждение:</span> Мягкие шины горят быстрее, чем кончается бензин. Перейдите на состав <strong style="color:#fff;">Medium</strong>, чтобы синхронизировать износ с баком и избежать лишних остановок.`;
+            } else if (lapsPerTank < lapsPerTireSet && fuelMapVal === '1') {
+                advice += `💡 <span style="color:#38bdf8;">Совет инженера:</span> Бак пустеет слишком быстро, пока резина еще жива. Попробуйте включить <strong style="color:#fff;">Fuel Map 2 или 3</strong>, чтобы растянуть топливо и убрать один пит-стоп из гонки.`;
             } else {
-                tipElement.innerHTML = `Дистанция превышает критический лимит автономности бака. Стратегия дозаправки неизбежна. Рекомендуется планировать окно пит-стопа на <strong style="color:#fff;">${Math.floor(lapsPerTank)} круге</strong>.`;
+                advice += `Рекомендуется проводить стандартный одновременный сервис: полная дозаправка + свежий комплект резины.`;
             }
+            tipElement.innerHTML = advice;
         }
     }
 
@@ -701,7 +727,6 @@
         return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    // Запуск проверки при загрузке страницы
     checkAuth();
 </script>
 
