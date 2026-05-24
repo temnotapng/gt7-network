@@ -3,506 +3,649 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GT7 Network // Lobby Hub</title>
+    <title>GT7 Driver Network | Cloud Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --card-bg: rgba(19, 20, 25, 0.85); /* Сделали панели слегка прозрачными, чтобы фон «дышал» */
-            --accent-color: #ff3e3e;
-            --text-main: #f5f5f7;
-            --text-muted: #9a9a12;
-            --border-color: rgba(36, 37, 45, 0.6);
+            --bg-main: #060709;
+            --panel-glass: rgba(10, 12, 18, 0.55);
+            --panel-border: rgba(255, 255, 255, 0.07);
+            --accent-red: #e21d48;
+            --accent-blue: #38bdf8;
+            --text-primary: #ffffff;
+            --text-muted: #94a3b8;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #050507;
-            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text-primary);
             margin: 0;
-            padding: 20px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             min-height: 100vh;
+            background-color: var(--bg-main);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* КИНЕМАТОГРАФИЧНЫЙ ФОН */
+        .track-background {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -1;
+            background: url('https://images.unsplash.com/photo-1542282088-fe8426682b8f?q=80&w=2070') center center / cover no-repeat;
+            animation: environmentLight 10s infinite;
+        }
+
+        .track-background::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 82%, rgba(56, 189, 248, 0.8) 0%, rgba(56, 189, 248, 0.2) 25%, transparent 55%);
+            opacity: 0;
+            mix-blend-mode: screen;
+            animation: headlightFlash 10s infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .track-background::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 60vh;
+            background: linear-gradient(0deg, rgba(6, 7, 9, 0.9) 0%, rgba(20, 15, 30, 0.4) 50%, transparent 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        @keyframes environmentLight {
+            0%, 70%, 74%, 78%, 82%, 100% { filter: brightness(0.42) saturate(1.1); }
+            71%, 73% { filter: brightness(0.55) saturate(1.2); }
+            79%, 81% { filter: brightness(0.55) saturate(1.2); }
+        }
+
+        @keyframes headlightFlash {
+            0%, 70%, 74%, 78%, 82%, 100% { opacity: 0; }
+            71%, 73% { opacity: 1; }
+            79%, 81% { opacity: 1; }
+        }
+
+        /* ЭКРАН АВТОРИЗАЦИИ */
+        .auth-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(4, 5, 8, 0.85);
+            backdrop-filter: blur(25px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-panel {
+            background: rgba(13, 16, 24, 0.75);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.6);
+        }
+
+        .auth-toggle-text {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.85em;
+            color: var(--text-muted);
+        }
+        .auth-toggle-text span {
+            color: #fff;
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* НАВИГАЦИЯ */
+        nav {
+            width: 280px;
+            background: rgba(8, 9, 12, 0.85);
+            height: 100vh;
+            position: fixed;
+            border-right: 1px solid var(--panel-border);
+            padding: 45px 24px;
+            box-sizing: border-box;
+            z-index: 10;
+            backdrop-filter: blur(20px);
+        }
+
+        .logo {
+            font-size: 1.1em;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 60px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo::before {
+            content: '';
+            display: inline-block;
+            width: 4px; height: 18px;
+            background: var(--accent-red);
+        }
+
+        .nav-links a {
+            display: block;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+        
+        .nav-links a.active {
+            border-left: 3px solid var(--accent-red);
+            border-radius: 0 8px 8px 0;
+            padding-left: 13px;
+        }
+
+        /* ОСНОВНАЯ ОБЛАСТЬ */
+        main {
+            margin-left: 280px;
+            padding: 60px;
+            width: calc(100% - 280px);
+            box-sizing: border-box;
+            z-index: 2;
             position: relative;
         }
 
-        /* --- ЗАДНИЙ ПЛАН: АНИМИРОВАННЫЙ СЛАЙДЕР --- */
-        .bg-slider {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-            overflow: hidden;
-            background-color: #050507;
-        }
-
-        .bg-slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-        }
-
-        /* Слой 1: Трасса (Нюрбургринг на рассвете в тумане) */
-        .track-bg {
-            /* Затемнение, чтобы текст оставался читаемым */
-            background-image: linear-gradient(rgba(10, 10, 12, 0.5), rgba(10, 10, 12, 0.8)), 
-                              url('https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=80&w=1920'); 
-            animation: fadeTrack 16s infinite ease-in-out;
-        }
-
-        /* Слой 2: Гоночный болид + эффект моргания фар */
-        .car-bg {
-            background-image: linear-gradient(rgba(10, 10, 12, 0.4), rgba(10, 10, 12, 0.7)), 
-                              url('https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=1920'); 
-            animation: fadeCarAndFlash 16s infinite ease-in-out;
-        }
-
-        /* Тайминги анимации для Трассы */
-        @keyframes fadeTrack {
-            0%, 40% { opacity: 1; }      /* Сначала во всей красе видна трасса */
-            50%, 90% { opacity: 0.1; }   /* Уступает место машине */
-            100% { opacity: 1; }         /* Возвращается обратно */
-        }
-
-        /* Тайминги анимации для Машины и моргания фар */
-        @keyframes fadeCarAndFlash {
-            0%, 40% { opacity: 0; filter: brightness(1) contrast(1); } /* Скрыта, пока смотрим на трассу */
-            48% { opacity: 1; filter: brightness(1) contrast(1); }    /* Плавно появилась */
-            
-            /* --- МОРГАНИЕ ФАРАМИ (Вспышки яркости) --- */
-            52% { filter: brightness(1.7) contrast(1.3); } /* Вспышка 1 (Дальний свет) */
-            54% { filter: brightness(1) contrast(1); }     /* Выкл */
-            56% { filter: brightness(1.7) contrast(1.3); } /* Вспышка 2 */
-            58% { filter: brightness(1) contrast(1); }     /* Выкл */
-            
-            80% { filter: brightness(1) contrast(1); }
-            82% { filter: brightness(1.8) contrast(1.4); } /* Яростное финальное моргание перед уходом */
-            84% { filter: brightness(1) contrast(1); }
-            
-            92% { opacity: 1; }
-            100% { opacity: 0; } /* Плавное исчезновение */
-        }
-
-        /* --- СТИЛИ ИНТЕРФЕЙСА ХАБА --- */
-        header {
-            width: 100%;
-            max-width: 1200px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--accent-color);
-            padding-bottom: 15px;
-            margin-bottom: 30px;
-            backdrop-filter: blur(5px); /* Размытие под шапкой */
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 24px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-style: italic;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-        }
-
-        .hub-container {
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .grid-layout {
             display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 25px;
-            width: 100%;
-            max-width: 1200px;
+            grid-template-columns: 2fr 1fr;
+            gap: 40px;
+            align-items: start;
         }
 
-        @media (max-width: 900px) {
-            .hub-container { grid-template-columns: 1fr; }
-        }
-
-        .panel {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
+        .pro-panel {
+            background: var(--panel-glass);
+            border: 1px solid var(--panel-border);
             border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
-            backdrop-filter: blur(10px); /* Эффект матового стекла для карточек */
+            padding: 35px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
 
-        h2 {
-            margin-top: 0;
-            font-size: 18px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-left: 3px solid var(--accent-color);
-            padding-left: 10px;
-            margin-bottom: 20px;
-        }
+        h2, h3, h4 { margin-top: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        h2 { font-size: 1.6em; margin-bottom: 35px; border-bottom: 1px solid var(--panel-border); padding-bottom: 15px;}
+        h3 { font-size: 1.15em; margin-bottom: 25px; color: rgba(255,255,255,0.9); }
 
-        .form-group { margin-bottom: 15px; }
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            color: #aaa;
-            text-transform: uppercase;
-            margin-bottom: 6px;
-        }
+        label { display: block; font-size: 0.75em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; font-weight: 700; letter-spacing: 0.5px; }
+        input, textarea, select { width: 100%; padding: 14px 16px; background: rgba(15, 18, 25, 0.7); border: 1px solid var(--panel-border); border-radius: 8px; color: white; font-size: 0.95em; box-sizing: border-box; margin-bottom: 25px; font-family: inherit; }
 
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            background: rgba(28, 29, 36, 0.8);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: white;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
+        .btn-premium { font-family: inherit; background: var(--text-primary); color: var(--bg-main); border: none; padding: 16px 30px; font-weight: 700; text-transform: uppercase; font-size: 0.85em; letter-spacing: 1px; border-radius: 8px; cursor: pointer; width: 100%; transition: all 0.2s ease; }
+        .btn-premium:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
+        /* КАРТОЧКА СБОКУ */
+        .pilot-sidebar-card { background: rgba(10, 12, 18, 0.8); border: 1px solid var(--panel-border); border-radius: 12px; padding: 40px 30px; text-align: center; backdrop-filter: blur(20px); position: sticky; top: 60px; }
+        .avatar-circle { width: 70px; height: 70px; background: rgba(255,255,255,0.03); border: 1px solid var(--panel-border); border-radius: 50%; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains+Mono', monospace; font-weight: 700; font-size: 1.4em; color: var(--text-primary); }
+        .badge-system { display: inline-block; padding: 5px 12px; border-radius: 4px; font-size: 0.75em; font-weight: 700; margin: 4px; font-family: 'JetBrains+Mono', monospace; background: rgba(255,255,255,0.05); border: 1px solid var(--panel-border); }
 
-        button {
-            width: 100%;
-            padding: 14px;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
+        /* MFD ГРИД */
+        .mfd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; margin-top: 25px; }
+        .mfd-node { background: rgba(0, 0, 0, 0.4); padding: 16px; border-radius: 8px; border: 1px solid var(--panel-border); }
+        .mfd-node .label { font-size: 0.65em; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+        .mfd-node .value { font-family: 'JetBrains+Mono', monospace; font-size: 1.4em; font-weight: 700; color: #fff; margin-top: 8px; }
 
-        button:hover { background: #cc3232; }
+        /* ЛЕНТА */
+        .feed-stack { display: flex; flex-direction: column; gap: 20px; }
+        .post-card { background: var(--panel-glass); border: 1px solid var(--panel-border); border-radius: 12px; padding: 30px; }
+        .post-meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.85em; color: var(--text-muted); }
+        .post-track-title { font-size: 1.25em; font-weight: 700; color: #fff; margin-bottom: 10px; }
+        .post-body-text { color: var(--text-muted); font-size: 0.95em; line-height: 1.6; }
 
-        .driver-card {
-            background: linear-gradient(135deg, rgba(26, 28, 35, 0.9) 0%, rgba(17, 18, 22, 0.9) 100%);
-            border-left: 4px solid #00e5ff;
-        }
-
-        .driver-card .status {
-            display: inline-block;
-            padding: 4px 8px;
-            background: rgba(0, 229, 255, 0.1);
-            color: #00e5ff;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
-        .lobbies-feed { display: flex; flex-direction: column; gap: 15px; }
-        
-        .lobby-card {
-            background: rgba(30, 31, 38, 0.6);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            transition: transform 0.2s;
-        }
-
-        .lobby-card:hover {
-            border-color: #555;
-            transform: scale(1.01);
-        }
-
-        .lobby-header {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 12px;
-        }
-
-        .track-name { font-weight: bold; font-size: 16px; }
-        .lobby-time { color: var(--accent-color); font-weight: bold; }
-        .lobby-body p { margin: 6px 0; font-size: 14px; }
-        
-        .lobby-comment {
-            background: rgba(10, 10, 12, 0.5);
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-style: italic;
-            color: #aaa;
-        }
-
-        .switch-auth {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 13px;
-            color: #888;
-            cursor: pointer;
-        }
-        .switch-auth span { color: var(--accent-color); text-decoration: underline; }
+        .empty-championships-box { border: 1px dashed rgba(255,255,255,0.15); border-radius: 12px; padding: 60px 40px; text-align: center; background: rgba(255,255,255,0.01); }
+        .empty-championships-box .icon { font-family: 'JetBrains+Mono', monospace; font-size: 2em; color: var(--accent-red); margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="bg-slider">
-        <div class="bg-slide track-bg"></div>
-        <div class="bg-slide car-bg"></div>
+    <div id="authScreen" class="auth-screen">
+        <div class="auth-panel" id="loginFormContainer">
+            <h3 style="text-align: center; letter-spacing: 1px; margin-bottom: 30px;">Вход в GT7 Network</h3>
+            <form id="loginForm">
+                <label>Игровой PSN ID</label>
+                <input type="text" id="loginUsername" required>
+                <label>Пароль профиля</label>
+                <input type="password" id="loginPassword" required>
+                <button type="submit" class="btn-premium">Авторизовать сессию</button>
+            </form>
+            <div class="auth-toggle-text">У вас еще нет лицензии пилота? <span onclick="toggleAuthMode(false)">Создать аккаунт</span></div>
+        </div>
+
+        <div class="auth-panel" id="registerFormContainer" style="display: none;">
+            <h3 style="text-align: center; letter-spacing: 1px; margin-bottom: 30px;">Регистрация Лицензии FIA</h3>
+            <form id="registerForm">
+                <label>Игровой PSN ID (Уникальный)</label>
+                <input type="text" id="regUsername" placeholder="Напр: Pro_Driver" required>
+                <label>Придумайте Пароль</label>
+                <input type="password" id="regPassword" required>
+                <label>Основной гоночный болид</label>
+                <input type="text" id="regCar" value="Porsche 911 GT3 R (992)">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label>Рейтинг DR</label>
+                        <select id="regDr"><option>A+</option><option selected>A</option><option>B</option><option>C</option></select>
+                    </div>
+                    <div>
+                        <label>Рейтинг SR</label>
+                        <select id="regSr"><option selected>S</option><option>A</option><option>B</option></select>
+                    </div>
+                </div>
+                <button type="submit" class="btn-premium" style="margin-top: 10px;">Зарегистрироваться</button>
+            </form>
+            <div class="auth-toggle-text">Уже есть профиль? <span onclick="toggleAuthMode(true)">Войти</span></div>
+        </div>
     </div>
 
-    <header>
-        <h1>GT7 Network // Lobby Hub</h1>
-        <div id="user-status" style="font-size: 14px;">Ожидание авторизации</div>
-    </header>
+    <div class="track-background"></div>
 
-    <div class="hub-container">
-        
-        <div class="left-column" style="display: flex; flex-direction: column; gap: 25px;">
-            
-            <div id="auth-panel" class="panel">
-                <h2 id="auth-title">Регистрация пилота</h2>
-                <form id="auth-form" onsubmit="handleAuth(event)">
-                    <div class="form-group">
-                        <label for="psn-id">PSN ID</label>
-                        <input type="text" id="psn-id" placeholder="Например: PRO_DRIVER" required>
+    <nav>
+        <div class="logo">GT7 Network</div>
+        <div class="nav-links">
+            <a class="active" onclick="switchTab(this, 'tab-lobbies')">Лобби-хаб</a>
+            <a onclick="switchTab(this, 'tab-pilots')">Профиль пилота</a>
+            <a onclick="switchTab(this, 'tab-championships')">Чемпионаты</a>
+            <a onclick="switchTab(this, 'tab-calc')">Инженерный MFD</a>
+        </div>
+        <button onclick="logout()" class="btn-premium" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; position: absolute; bottom: 40px; left: 24px; width: calc(100% - 48px); padding: 10px;">Выйти</button>
+    </nav>
+
+    <main>
+        <div id="tab-lobbies" class="tab-content active">
+            <div class="grid-layout">
+                <div>
+                    <div class="pro-panel">
+                        <h3>Запланировать заезд в лобби</h3>
+                        <form id="socialPostForm">
+                            <label>Локация / Класс техники</label>
+                            <input type="text" id="trackInput" placeholder="Напр: Nürburgring Nordschleife | Gr.3" required>
+                            <label>Регламент и условия сессии</label>
+                            <textarea id="detailsInput" placeholder="ID комнаты, время старта, тип резины, ограничения по тюнингу..." style="height:110px; resize:none;" required></textarea>
+                            <button type="submit" class="btn-premium" onclick="playGTClick()">Опубликовать сессию</button>
+                        </form>
                     </div>
-                    <div class="form-group">
-                        <label for="car-model">Основной болид</label>
-                        <input type="text" id="car-model" placeholder="Porsche 911 GT3 R (992)" required>
+                    <div class="feed-stack" id="feed"></div>
+                </div>
+                
+                <div>
+                    <div class="pilot-sidebar-card">
+                        <div class="avatar-circle" id="sideAvatar">--</div>
+                        <h3 id="sideName" style="margin: 0 0 5px 0;">Загрузка...</h3>
+                        <p id="sideCar" style="color: var(--text-muted); margin: 0 0 25px 0; font-size: 0.85em;">Автомобиль не выбран</p>
+                        <div>
+                            <span class="badge-system" id="sideDR">DR: --</span>
+                            <span class="badge-system" id="sideSR">SR: --</span>
+                        </div>
                     </div>
-                    <button type="submit" id="auth-btn">Создать профиль</button>
-                </form>
-                <div class="switch-auth" onclick="toggleAuthMode()">
-                    Уже есть профиль? <span id="switch-text">Войти в хаб</span>
                 </div>
             </div>
+        </div>
 
-            <div id="profile-panel" class="panel driver-card" style="display: none;">
-                <h2>Текущий пилот</h2>
-                <div class="status">В Сети</div>
-                <p style="margin: 15px 0 5px 0; font-size: 18px; font-weight: bold;" id="profile-psn"></p>
-                <p style="margin: 0; font-size: 14px; color: #aaa;" id="profile-car"></p>
-                <button onclick="logout()" style="margin-top: 20px; background: #24252d; font-size: 12px; padding: 8px;">Выйти из хаба</button>
-            </div>
-
-            <div id="create-lobby-panel" class="panel">
-                <h2>Открыть заезд</h2>
-                <form id="lobby-form" onsubmit="createLobby(event)">
-                    <div class="form-group">
-                        <label for="lobby-track">Трасса заезда</label>
-                        <select id="lobby-track">
-                            <option value="Nürburgring Nordschleife">Nürburgring Nordschleife</option>
-                            <option value="Spa-Francorchamps">Spa-Francorchamps</option>
-                            <option value="Sarthe (Le Mans)">Circuit de la Sarthe</option>
-                            <option value="Suzuka Circuit">Suzuka Circuit</option>
-                            <option value="Tsukuba">Tsukuba Circuit</option>
-                        </select>
+        <div id="tab-pilots" class="tab-content">
+            <h2>Лицензия Пилота FIA GT</h2>
+            <div class="pro-panel" style="max-width: 650px;">
+                <h3>Редактировать учетную карточку</h3>
+                <form id="profileForm">
+                    <label>Основной боевой автомобиль</label>
+                    <input type="text" id="carInput" required>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <label>Рейтинг пилота (DR)</label>
+                            <select id="drInput" onchange="playGTClick()"><option value="A+">A+</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
+                        </div>
+                        <div>
+                            <label>Рейтинг безопасности (SR)</label>
+                            <select id="srInput" onchange="playGTClick()"><option value="S">S</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="lobby-car">Ограничения по авто / Класс</label>
-                        <input type="text" id="lobby-car" placeholder="Gr.3 / Свободный выбор" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="lobby-comment">Комментарий к лобби</label>
-                        <textarea id="lobby-comment" rows="3" placeholder="Чистая гонка, старт в 21:00..."></textarea>
-                    </div>
-                    <button type="submit">Опубликовать в сеть</button>
+                    <button type="submit" class="btn-premium">Сохранить изменения</button>
                 </form>
             </div>
-
         </div>
 
-        <div class="right-column panel">
-            <h2>Текущие лобби в сети (Активны 6 часов)</h2>
-            <div id="lobbies-container" class="lobbies-feed"></div>
+        <div id="tab-championships" class="tab-content">
+            <h2>Официальные чемпионаты сообщества</h2>
+            <div class="empty-championships-box" style="max-width: 800px;">
+                <div class="icon">[ СЕЗОН СЕЙЧАС ФОРМИРУЕТСЯ ]</div>
+                <h3 style="margin-bottom: 10px; font-size: 1.3em;">Календарь этапов пуст</h3>
+                <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto; line-height: 1.6; font-size: 0.95em;">В данный момент гоночная дирекция занимается проработкой технического регламента. Скоро всё появится!</p>
+            </div>
         </div>
 
-    </div>
+        <div id="tab-calc" class="tab-content">
+            <h2>Расчет гоночной стратегии (Multi-Function Display)</h2>
+            <div class="grid-layout" style="grid-template-columns: 1fr 1fr;">
+                <div class="pro-panel">
+                    <h3>Параметры сессии</h3>
+                    <label>Режим заезда</label>
+                    <select id="calcRaceMode" onchange="toggleCalcFields()"><option value="laps">Фиксированная дистанция (круги)</option><option value="time">Эндуранс-марафон (таймер)</option></select>
+                    <div id="calcLapsGroup">
+                        <label>Количество кругов в гонке</label>
+                        <input type="number" id="calcRaceLaps" value="12" min="1" oninput="calculateStrategy()">
+                    </div>
+                    <div id="calcTimeGroup" style="display: none;">
+                        <label>Продолжительность заезда (минуты)</label>
+                        <input type="number" id="calcRaceMinutes" value="30" min="1" oninput="calculateStrategy()">
+                        <label>Планируемое время круга</label>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 25px;"><input type="number" id="calcLapMin" value="1" min="0" oninput="calculateStrategy()"><input type="number" id="calcLapSec" value="45" min="0" max="59" oninput="calculateStrategy()"></div>
+                    </div>
+                    <div style="border-top: 1px dashed var(--panel-border); margin: 20px 0; padding-top: 15px;">
+                        <h4 style="font-size:0.9em; color:var(--accent-blue); margin-bottom: 15px;">Телеметрия топлива</h4>
+                        <label>Множитель расхода топлива (Fuel Rate)</label>
+                        <select id="calcFuelRate" onchange="calculateStrategy()"><option value="1">x1</option><option value="2">x2</option><option value="3">x3</option><option value="5" selected>x5</option><option value="10">x10</option></select>
+                        <label>Базовый расход на FM1 (% от бака за 1 круг)</label>
+                        <input type="number" id="calcFuelPerLapPercent" value="4.5" step="0.1" oninput="calculateStrategy()">
+                        <label>Топливная карта (Fuel Map)</label>
+                        <select id="calcFuelMap" onchange="calculateStrategy()"><option value="1">FM1 — Power</option><option value="2">FM2</option><option value="3">FM3</option><option value="6">FM6 — Lean</option></select>
+                    </div>
+                    <div style="border-top: 1px dashed var(--panel-border); margin: 20px 0; padding-top: 15px;">
+                        <h4 style="font-size:0.9em; color:#f43f5e; margin-bottom: 15px;">Телеметрия резины</h4>
+                        <label>Состав шин (Tire Compound)</label>
+                        <select id="calcTireCompound" onchange="calculateStrategy()"><option value="soft" selected>Racing: Soft</option><option value="medium">Racing: Medium</option><option value="hard">Racing: Hard</option></select>
+                        <label>Множитель износа шин (Tire Rate)</label>
+                        <select id="calcTireRate" onchange="calculateStrategy()"><option value="1">x1</option><option value="2">x2</option><option value="4">x4</option><option value="6" selected>x6</option><option value="10">x10</option></select>
+                    </div>
+                </div>
+                <div class="pro-panel" style="background: rgba(15, 20, 30, 0.45); position: sticky; top: 60px;">
+                    <h3>Анализ телеметрии инженера</h3>
+                    <div class="mfd-grid">
+                        <div class="mfd-node"><div class="label">Кругов в гонке</div><div class="value" id="resTotalLaps">--</div></div>
+                        <div class="mfd-node"><div class="label">Расход бака / круг</div><div class="value" id="resActualPerLap">--</div></div>
+                        <div class="mfd-node"><div class="label">Запас топлива (кругов)</div><div class="value" id="resLapsPerTank">--</div></div>
+                        <div class="mfd-node"><div class="label">Износ шин / круг</div><div class="value" id="resActualTireWear">--</div></div>
+                        <div class="mfd-node"><div class="label">Ресурс шин (кругов)</div><div class="value" id="resLapsPerTires">--</div></div>
+                        <div class="mfd-node"><div class="label">Всего пит-стопов</div><div class="value" id="resPitStops">--</div></div>
+                    </div>
+                    <div style="margin-top: 35px; border-top: 1px solid var(--panel-border); padding-top: 25px;"><span style="font-size: 0.7em; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Рекомендованная тактика:</span><div id="resStrategyTip" style="font-size: 0.95em; color: #e2e8f0; margin-top: 10px; line-height: 1.6;">--</div></div>
+                </div>
+            </div>
+        </div>
+    </main>
 
-    <script>
-        const SUPABASE_URL = 'https://fbcnnieqieyzsfipckl.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_8IgPV_lCbhc2E2s07k-NfQ_7oMEoHIC';
+<script>
+    // ИНИЦИАЛИЗАЦИЯ SUPABASE
+    const SUPABASE_URL = 'https://fbcnnieqieyvzsfipckl.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_8IgPV_lCbhc2E2s07k-NfQ_7oMEoHIC';
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentPilot = JSON.parse(sessionStorage.getItem('gt7_logged_pilot')) || null;
+
+    // СИНТЕЗАТОР ГОНОЧНЫХ SFX
+    function playGTClick() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const now = ctx.currentTime;
+            const playNode = (freq, start, duration, vol) => {
+                const osc = ctx.createOscillator(); const gain = ctx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(freq, start);
+                gain.gain.setValueAtTime(vol, start); gain.gain.exponentialRampToValueAtTime(0.00001, start + duration);
+                osc.connect(gain); gain.connect(ctx.destination); osc.start(start); osc.stop(start + duration);
+            };
+            playNode(1550, now, 0.04, 0.03); playNode(1950, now + 0.02, 0.03, 0.02);
+        } catch(e) {}
+    }
+
+    function playGTSuccess() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const now = ctx.currentTime;
+            const playNode = (freq, start, duration, vol) => {
+                const osc = ctx.createOscillator(); const gain = ctx.createGain();
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, start);
+                gain.gain.setValueAtTime(vol, start); gain.gain.exponentialRampToValueAtTime(0.00001, start + duration);
+                osc.connect(gain); gain.connect(ctx.destination); osc.start(start); osc.stop(start + duration);
+            };
+            playNode(880, now, 0.15, 0.04); playNode(1109.73, now + 0.05, 0.15, 0.04); playNode(1320, now + 0.10, 0.25, 0.04);
+        } catch(e) {}
+    }
+
+    // СИСТЕМА АВТОРИЗАЦИИ (ОБЛАКО)
+    function checkAuth() {
+        if (currentPilot) {
+            document.getElementById('authScreen').style.display = 'none';
+            updateProfileUI();
+            renderFeed();
+        } else {
+            document.getElementById('authScreen').style.display = 'flex';
+        }
+    }
+
+    function toggleAuthMode(showLogin) {
+        playGTClick();
+        document.getElementById('loginFormContainer').style.display = showLogin ? 'block' : 'none';
+        document.getElementById('registerFormContainer').style.display = showLogin ? 'none' : 'block';
+    }
+
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('regUsername').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const car = document.getElementById('regCar').value;
+        const dr = document.getElementById('regDr').value;
+        const sr = document.getElementById('regSr').value;
+
+        // Проверяем, занят ли ник в облаке
+        const { data: existing } = await supabase.from('gt7_accounts').select('username').eq('username', username).maybeSingle();
+        if (existing) { alert('Этот PSN ID уже зарегистрирован в базе данных!'); return; }
+
+        // Добавляем в базу данных
+        const { error } = await supabase.from('gt7_accounts').insert([{ username, password, car, dr, sr }]);
+        if(error) { alert('Ошибка БД: ' + error.message); return; }
+
+        currentPilot = { username, car, dr, sr };
+        sessionStorage.setItem('gt7_logged_pilot', JSON.stringify(currentPilot));
+        playGTSuccess();
+        alert('Регистрация завершена! Лицензия FIA сохранена в облаке.');
+        checkAuth();
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        // Запрос к Supabase
+        const { data: account, error } = await supabase.from('gt7_accounts').select('*').eq('username', username).maybeSingle();
+
+        if (account && account.password === password) {
+            currentPilot = account;
+            sessionStorage.setItem('gt7_logged_pilot', JSON.stringify(currentPilot));
+            playGTSuccess();
+            checkAuth();
+        } else { alert('Неверный PSN ID или пароль.'); }
+    });
+
+    function logout() {
+        playGTClick();
+        sessionStorage.removeItem('gt7_logged_pilot');
+        currentPilot = null;
+        checkAuth();
+    }
+
+    // НАВИГАЦИЯ В ВКЛАДКАХ
+    function switchTab(element, tabId) {
+        playGTClick();
+        document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
+        element.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        if(tabId === 'tab-calc') calculateStrategy();
+        if(tabId === 'tab-lobbies') renderFeed();
+    }
+
+    function updateProfileUI() {
+        if (!currentPilot) return;
+        document.getElementById('sideName').innerText = currentPilot.username;
+        document.getElementById('sideCar').innerText = currentPilot.car;
+        document.getElementById('sideDR').innerText = 'DR: ' + currentPilot.dr;
+        document.getElementById('sideSR').innerText = 'SR: ' + currentPilot.sr;
+        document.getElementById('sideAvatar').innerText = currentPilot.username.substring(0,2).toUpperCase();
+        document.getElementById('carInput').value = currentPilot.car;
+        document.getElementById('drInput').value = currentPilot.dr;
+        document.getElementById('srInput').value = currentPilot.sr;
+    }
+
+    document.getElementById('profileForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (!currentPilot) return;
+        const car = document.getElementById('carInput').value;
+        const dr = document.getElementById('drInput').value;
+        const sr = document.getElementById('srInput').value;
+
+        // Обновляем строку пилота в базе данных
+        const { error } = await supabase.from('gt7_accounts').update({ car, dr, sr }).eq('username', currentPilot.username);
+        if(error) { alert('Не удалось обновить профиль в БД'); return; }
+
+        currentPilot.car = car; currentPilot.dr = dr; currentPilot.sr = sr;
+        sessionStorage.setItem('gt7_logged_pilot', JSON.stringify(currentPilot));
+        updateProfileUI();
+        playGTSuccess();
+        alert('Данные лицензии синхронизированы с облаком.');
+    });
+
+    // ОБЛАЧНАЯ ЛЕНТА ГОНОК
+    const postForm = document.getElementById('socialPostForm');
+    const feedContainer = document.getElementById('feed');
+
+    async function renderFeed() {
+        if (!feedContainer) return;
+        feedContainer.innerHTML = '<p style="color: var(--text-muted); text-align:center; padding:20px;">Подключение к спутнику телеметрии...</p>';
+
+        // Тянем посты из Supabase, сортируя по свежести
+        const { data: posts, error } = await supabase.from('gt7_posts').select('*').order('created_at', { ascending: false });
         
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        let isLoginMode = false; 
-        let currentPilot = JSON.parse(sessionStorage.getItem('active_pilot')) || null;
-
-        function toggleAuthMode() {
-            isLoginMode = !isLoginMode;
-            const title = document.getElementById('auth-title');
-            const btn = document.getElementById('auth-btn');
-            const switchTxt = document.getElementById('switch-text');
-            const carGroup = document.getElementById('car-model').closest('.form-group');
-
-            if (isLoginMode) {
-                title.innerText = "Вход в хаб";
-                btn.innerText = "Авторизоваться";
-                switchTxt.innerText = "Создать профиль";
-                carGroup.style.display = "none";
-                document.getElementById('car-model').removeAttribute('required');
-            } else {
-                title.innerText = "Регистрация пилота";
-                btn.innerText = "Создать профиль";
-                switchTxt.innerText = "Войти в хаб";
-                carGroup.style.display = "block";
-                document.getElementById('car-model').setAttribute('required', 'required');
-            }
+        feedContainer.innerHTML = '';
+        if(error || !posts || posts.length === 0) {
+            feedContainer.innerHTML = '<p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 40px;">Активные сессии лобби отсутствуют.</p>';
+            return;
         }
 
-        async function handleAuth(event) {
-            event.preventDefault();
-            const psn = document.getElementById('psn-id').value.trim();
-            const car = document.getElementById('car-model').value.trim();
-
-            try {
-                if (isLoginMode) {
-                    const { data, error } = await supabase
-                        .from('gt7_accounts')
-                        .select('*')
-                        .eq('psn_id', psn)
-                        .single();
-
-                    if (error || !data) {
-                        alert("Пилот с таким PSN ID не найден!");
-                        return;
-                    }
-                    loginSuccess(data);
-                } else {
-                    const { data, error } = await supabase
-                        .from('gt7_accounts')
-                        .insert([{ psn_id: psn, car_model: car }])
-                        .select()
-                        .single();
-
-                    if (error) {
-                        if (error.code === '23505') {
-                            alert("Этот PSN ID уже зарегистрирован! Войдите через 'Вход в хаб'.");
-                        } else { throw error; }
-                        return;
-                    }
-                    alert("Профиль сохранен в облаке!");
-                    loginSuccess(data);
-                }
-            } catch (err) {
-                console.error("Ошибка базы:", err.message);
-            }
-        }
-
-        function loginSuccess(pilotData) {
-            currentPilot = pilotData;
-            sessionStorage.setItem('active_pilot', JSON.stringify(pilotData));
-            updateUI();
-        }
-
-        function logout() {
-            currentPilot = null;
-            sessionStorage.removeItem('active_pilot');
-            updateUI();
-        }
-
-        function updateUI() {
-            const authPanel = document.getElementById('auth-panel');
-            const profilePanel = document.getElementById('profile-panel');
-            const lobbyPanel = document.getElementById('create-lobby-panel');
-
-            if (currentPilot) {
-                authPanel.style.display = "none";
-                profilePanel.style.display = "block";
-                lobbyPanel.style.display = "block";
-                document.getElementById('profile-psn').innerText = currentPilot.psn_id;
-                document.getElementById('profile-car').innerText = currentPilot.car_model || 'Машина не выбрана';
-                document.getElementById('user-status').innerText = `Пилот: ${currentPilot.psn_id}`;
-            } else {
-                authPanel.style.display = "block";
-                profilePanel.style.display = "none";
-                lobbyPanel.style.display = "none";
-                document.getElementById('user-status').innerText = "Ожидание авторизации";
-                document.getElementById('auth-form').reset();
-            }
-        }
-
-        async function createLobby(event) {
-            event.preventDefault();
-            if (!currentPilot) return;
-
-            const track = document.getElementById('lobby-track').value;
-            const car = document.getElementById('lobby-car').value.trim();
-            const comment = document.getElementById('lobby-comment').value.trim();
-
-            try {
-                const { error } = await supabase
-                    .from('gt7_lobbies')
-                    .insert([{
-                        psn_id: currentPilot.psn_id,
-                        track_name: track,
-                        car_model: car,
-                        comment: comment
-                    }]);
-
-                if (error) throw error;
-                document.getElementById('lobby-form').reset();
-                loadActiveLobbies();
-            } catch (err) {
-                alert("Ошибка публикации: " + err.message);
-            }
-        }
-
-        async function loadActiveLobbies() {
-            try {
-                const hoursLimit = 6;
-                const timeCutoff = new Date(Date.now() - hoursLimit * 60 * 60 * 1000).toISOString();
-
-                const { data: lobbies, error } = await supabase
-                    .from('gt7_lobbies')
-                    .select('*')
-                    .gt('created_at', timeCutoff)
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                const lobbiesContainer = document.getElementById('lobbies-container');
-                if (!lobbiesContainer) return;
-                lobbiesContainer.innerHTML = ''; 
-
-                if (!lobbies || lobbies.length === 0) {
-                    lobbiesContainer.innerHTML = `
-                        <div style="text-align: center; color: #666; padding: 40px 20px;">
-                            <p style="font-size: 24px; margin-bottom: 5px;">🚦</p>
-                            <p style="margin: 0;">Сейчас в сети нет активных заездов.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                lobbies.forEach(lobby => {
-                    const lobbyCard = document.createElement('div');
-                    lobbyCard.className = 'lobby-card';
-                    const lobbyTime = new Date(lobby.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                    lobbyCard.innerHTML = `
-                        <div class="lobby-header">
-                            <span class="track-name">📍 ${lobby.track_name}</span>
-                            <span class="lobby-time">${lobbyTime}</span>
-                        </div>
-                        <div class="lobby-body">
-                            <p><strong>Организатор:</strong> PSN: <span style="color: #00e5ff;">${lobby.psn_id}</span></p>
-                            <p><strong>Регламент по авто:</strong> ${lobby.car_model}</p>
-                            ${lobby.comment ? `<p class="lobby-comment">💬 ${lobby.comment}</p>` : ''}
-                        </div>
-                    `;
-                    lobbiesContainer.appendChild(lobbyCard);
-                });
-            } catch (err) {
-                console.error('Ошибка ленты лобби:', err.message);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            updateUI();
-            loadActiveLobbies();
-            setInterval(loadActiveLobbies, 60000);
+        posts.forEach(post => {
+            const dateObj = new Date(post.created_at);
+            const timeString = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' | ' + dateObj.toLocaleDateString();
+            
+            const postElement = document.createElement('div');
+            postElement.className = 'post-card';
+            postElement.innerHTML = `
+                <div class="post-meta-row">
+                    <span style="font-weight: 700; color: #fff;">${escapeHtml(post.author)} [DR: ${post.dr} / SR: ${post.sr}]</span>
+                    <span>${timeString}</span>
+                </div>
+                <div class="post-track-title">${escapeHtml(post.track)}</div>
+                <div class="post-body-text">${escapeHtml(post.details).replace(/\n/g, '<br>')}</div>
+            `;
+            feedContainer.appendChild(postElement);
         });
-    </script>
+    }
+
+    postForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if(!currentPilot) return;
+
+        const track = document.getElementById('trackInput').value;
+        const details = document.getElementById('detailsInput').value;
+
+        // Пушим пост прямо в облако
+        const { error } = await supabase.from('gt7_posts').insert([{
+            author: currentPilot.username,
+            dr: currentPilot.dr,
+            sr: currentPilot.sr,
+            track: track,
+            details: details
+        }]);
+
+        if (error) { alert('Ошибка отправки сессии'); return; }
+        
+        postForm.reset();
+        renderFeed();
+    });
+
+    function escapeHtml(text) { return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+    // КАЛЬКУЛЯТОР СТРАТЕГИИ
+    function toggleCalcFields() {
+        playGTClick();
+        const mode = document.getElementById('calcRaceMode').value;
+        document.getElementById('calcLapsGroup').style.display = mode === 'laps' ? 'block' : 'none';
+        document.getElementById('calcTimeGroup').style.display = mode === 'time' ? 'block' : 'none';
+        calculateStrategy();
+    }
+
+    function calculateStrategy() {
+        const mode = document.getElementById('calcRaceMode').value;
+        let totalLaps = 0;
+        if (mode === 'laps') {
+            totalLaps = parseInt(document.getElementById('calcRaceLaps').value) || 0;
+        } else {
+            const mins = parseInt(document.getElementById('calcRaceMinutes').value) || 0;
+            const lapMin = parseInt(document.getElementById('calcLapMin').value) || 0;
+            const lapSec = parseInt(document.getElementById('calcLapSec').value) || 0;
+            const totalLapSeconds = (lapMin * 60) + lapSec;
+            if (totalLapSeconds > 0) totalLaps = Math.ceil((mins * 60) / totalLapSeconds);
+        }
+        if (totalLaps <= 0) return;
+
+        const fuelRate = parseFloat(document.getElementById('calcFuelRate').value) || 1;
+        const baseFuelPerLap = parseFloat(document.getElementById('calcFuelPerLapPercent').value) || 0;
+        const fuelMapVal = document.getElementById('calcFuelMap').value;
+        const mapModifiers = { '1': 1.0, '2': 0.93, '3': 0.86, '6': 0.62 };
+        const currentMapMod = mapModifiers[fuelMapVal] || 1.0;
+
+        const actualFuelPerLap = baseFuelPerLap * fuelRate * currentMapMod;
+        const lapsPerTank = Math.floor((100 / actualFuelPerLap) * 100) / 100;
+
+        const baseTireWear = { 'soft': 1.1, 'medium': 0.65, 'hard': 0.35 };
+        const selectedCompound = document.getElementById('calcTireCompound').value;
+        const tireRate = parseFloat(document.getElementById('calcTireRate').value) || 1;
+        const actualTireWearPerLap = baseTireWear[selectedCompound] * tireRate;
+        const lapsPerTireSet = Math.floor((85 / actualTireWearPerLap) * 100) / 100;
+
+        const maxLapsPerStint = Math.min(lapsPerTank, lapsPerTireSet);
+        const stopsRequired = Math.max(0, Math.ceil(totalLaps / maxLapsPerStint) - 1);
+
+        document.getElementById('resTotalLaps').innerText = totalLaps;
+        document.getElementById('resActualPerLap').innerText = (Math.round(actualFuelPerLap * 10) / 10) + '%';
+        document.getElementById('resLapsPerTank').innerText = lapsPerTank > totalLaps ? 'Весь заезд' : lapsPerTank + ' кр.';
+        document.getElementById('resActualTireWear').innerText = (Math.round(actualTireWearPerLap * 10) / 10) + '%';
+        document.getElementById('resLapsPerTires').innerText = lapsPerTireSet > totalLaps ? 'Весь заезд' : lapsPerTireSet + ' кр.';
+        document.getElementById('resPitStops').innerText = stopsRequired;
+
+        let tipElement = document.getElementById('resStrategyTip');
+        if (stopsRequired === 0) {
+            tipElement.innerHTML = `Ресурсов бака и прочности шин хватает до финиша. Стратегия <strong style="color:#34d399;">«Без пит-стопов»</strong>. Атакуйте на карте FM1.`;
+        } else {
+            let limitReason = lapsPerTank < lapsPerTireSet ? 'топливо' : 'износ резины';
+            tipElement.innerHTML = `Необходимая стратегия: <strong style="color:var(--accent-red);">${stopsRequired} пит-стоп(а)</strong>. Отрезок: ~<strong style="color:#fff;">${Math.floor(maxLapsPerStint)} кр.</strong> Ограничитель — <span style="color:#60a5fa;">${limitReason}</span>.`;
+        }
+    }
+
+    checkAuth();
+</script>
 </body>
 </html>
