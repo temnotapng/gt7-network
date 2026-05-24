@@ -7,10 +7,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --card-bg: rgba(19, 20, 25, 0.85); /* Сделали панели слегка прозрачными, чтобы фон «дышал» */
+            --card-bg: rgba(19, 20, 25, 0.85); /* Полупрозрачные карточки */
             --accent-color: #ff3e3e;
             --text-main: #f5f5f7;
-            --text-muted: #9a9a12;
+            --text-muted: #7e7e86; /* Исправили на приятный серый цвет */
             --border-color: rgba(36, 37, 45, 0.6);
         }
 
@@ -27,7 +27,7 @@
             position: relative;
         }
 
-        /* --- ЗАДНИЙ ПЛАН: АНИМИРОВАННЫЙ СЛАЙДЕР --- */
+        /* --- ЗАДНИЙ ПЛАН: ЖИВОЙ АНИМИРОВАННЫЙ СЛАЙДЕР --- */
         .bg-slider {
             position: fixed;
             top: 0;
@@ -37,6 +37,7 @@
             z-index: -1;
             overflow: hidden;
             background-color: #050507;
+            pointer-events: none; /* Чтобы фон не мешал кликам */
         }
 
         .bg-slide {
@@ -49,45 +50,44 @@
             background-position: center;
         }
 
-        /* Слой 1: Трасса (Нюрбургринг на рассвете в тумане) */
+        /* Слой 1: Фото трассы (например, Нюрбургринг) */
         .track-bg {
-            /* Затемнение, чтобы текст оставался читаемым */
             background-image: linear-gradient(rgba(10, 10, 12, 0.5), rgba(10, 10, 12, 0.8)), 
                               url('https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=80&w=1920'); 
             animation: fadeTrack 16s infinite ease-in-out;
         }
 
-        /* Слой 2: Гоночный болид + эффект моргания фар */
+        /* Слой 2: Автомобиль, который будет моргать фарами */
         .car-bg {
             background-image: linear-gradient(rgba(10, 10, 12, 0.4), rgba(10, 10, 12, 0.7)), 
                               url('https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=1920'); 
             animation: fadeCarAndFlash 16s infinite ease-in-out;
         }
 
-        /* Тайминги анимации для Трассы */
+        /* Тайминги: Переключение между Трассой и Машиной */
         @keyframes fadeTrack {
-            0%, 40% { opacity: 1; }      /* Сначала во всей красе видна трасса */
-            50%, 90% { opacity: 0.1; }   /* Уступает место машине */
-            100% { opacity: 1; }         /* Возвращается обратно */
+            0%, 40% { opacity: 1; }      
+            50%, 90% { opacity: 0.1; }   
+            100% { opacity: 1; }         
         }
 
-        /* Тайминги анимации для Машины и моргания фар */
+        /* Тайминги: Появление машины + моргание фарами за счет фильтра яркости */
         @keyframes fadeCarAndFlash {
-            0%, 40% { opacity: 0; filter: brightness(1) contrast(1); } /* Скрыта, пока смотрим на трассу */
-            48% { opacity: 1; filter: brightness(1) contrast(1); }    /* Плавно появилась */
+            0%, 40% { opacity: 0; filter: brightness(1) contrast(1); } 
+            48% { opacity: 1; filter: brightness(1) contrast(1); }    
             
-            /* --- МОРГАНИЕ ФАРАМИ (Вспышки яркости) --- */
-            52% { filter: brightness(1.7) contrast(1.3); } /* Вспышка 1 (Дальний свет) */
-            54% { filter: brightness(1) contrast(1); }     /* Выкл */
-            56% { filter: brightness(1.7) contrast(1.3); } /* Вспышка 2 */
-            58% { filter: brightness(1) contrast(1); }     /* Выкл */
+            /* Эффект моргания фарами (вспышки) */
+            52% { filter: brightness(1.8) contrast(1.4); } 
+            54% { filter: brightness(1) contrast(1); }     
+            56% { filter: brightness(1.8) contrast(1.4); } 
+            58% { filter: brightness(1) contrast(1); }     
             
             80% { filter: brightness(1) contrast(1); }
-            82% { filter: brightness(1.8) contrast(1.4); } /* Яростное финальное моргание перед уходом */
+            82% { filter: brightness(1.9) contrast(1.5); } /* Финальное моргание */
             84% { filter: brightness(1) contrast(1); }
             
             92% { opacity: 1; }
-            100% { opacity: 0; } /* Плавное исчезновение */
+            100% { opacity: 0; } 
         }
 
         /* --- СТИЛИ ИНТЕРФЕЙСА ХАБА --- */
@@ -100,7 +100,7 @@
             border-bottom: 2px solid var(--accent-color);
             padding-bottom: 15px;
             margin-bottom: 30px;
-            backdrop-filter: blur(5px); /* Размытие под шапкой */
+            backdrop-filter: blur(5px);
         }
 
         header h1 {
@@ -130,7 +130,7 @@
             border-radius: 12px;
             padding: 25px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.7);
-            backdrop-filter: blur(10px); /* Эффект матового стекла для карточек */
+            backdrop-filter: blur(10px);
         }
 
         h2 {
@@ -323,12 +323,34 @@
         const SUPABASE_URL = 'https://fbcnnieqieyzsfipckl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_8IgPV_lCbhc2E2s07k-NfQ_7oMEoHIC';
         
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Защита от ошибки "Identifier has already been declared"
+        let supabase;
+        if (typeof window.supabaseInstance === 'undefined') {
+            window.supabaseInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+        supabase = window.supabaseInstance;
 
+        // Исправленный ключ сессии пилота
+        let currentPilot = JSON.parse(sessionStorage.getItem('gt7_logged_pilot')) || null;
         let isLoginMode = false; 
-        let currentPilot = JSON.parse(sessionStorage.getItem('active_pilot')) || null;
+
+        // --- ТВОЙ СИНТЕЗАТОР ГОНОЧНЫХ SFX (ВОЗВРАЩЕН И РАБОТАЕТ) ---
+        function playGTClick() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const now = ctx.currentTime;
+                const playNode = (freq, start, duration, vol) => {
+                    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(freq, start);
+                    gain.gain.setValueAtTime(vol, start); gain.gain.exponentialRampToValueAtTime(0.00001, start + duration);
+                    osc.connect(gain); gain.connect(ctx.destination); osc.start(start); osc.stop(start + duration);
+                };
+                playNode(1550, now, 0.04, 0.03); playNode(1950, now + 0.02, 0.03, 0.02);
+            } catch(e) {}
+        }
 
         function toggleAuthMode() {
+            playGTClick(); // Добавляем звук при клике
             isLoginMode = !isLoginMode;
             const title = document.getElementById('auth-title');
             const btn = document.getElementById('auth-btn');
@@ -352,6 +374,7 @@
 
         async function handleAuth(event) {
             event.preventDefault();
+            playGTClick();
             const psn = document.getElementById('psn-id').value.trim();
             const car = document.getElementById('car-model').value.trim();
 
@@ -364,7 +387,7 @@
                         .single();
 
                     if (error || !data) {
-                        alert("Пилот с таким PSN ID не найден!");
+                        alert("Пилот с таким PSN ID не зарегистрирован!");
                         return;
                     }
                     loginSuccess(data);
@@ -377,11 +400,11 @@
 
                     if (error) {
                         if (error.code === '23505') {
-                            alert("Этот PSN ID уже зарегистрирован! Войдите через 'Вход в хаб'.");
+                            alert("Этот PSN ID уже зарегистрирован! Переключитесь на форму Входа.");
                         } else { throw error; }
                         return;
                     }
-                    alert("Профиль сохранен в облаке!");
+                    alert("Профиль успешно создан в облаке!");
                     loginSuccess(data);
                 }
             } catch (err) {
@@ -391,13 +414,14 @@
 
         function loginSuccess(pilotData) {
             currentPilot = pilotData;
-            sessionStorage.setItem('active_pilot', JSON.stringify(pilotData));
+            sessionStorage.setItem('gt7_logged_pilot', JSON.stringify(pilotData));
             updateUI();
         }
 
         function logout() {
+            playGTClick();
             currentPilot = null;
-            sessionStorage.removeItem('active_pilot');
+            sessionStorage.removeItem('gt7_logged_pilot');
             updateUI();
         }
 
@@ -424,6 +448,7 @@
 
         async function createLobby(event) {
             event.preventDefault();
+            playGTClick();
             if (!currentPilot) return;
 
             const track = document.getElementById('lobby-track').value;
