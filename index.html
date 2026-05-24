@@ -392,7 +392,7 @@
     // ИНИЦИАЛИЗАЦИЯ SUPABASE
     const SUPABASE_URL = 'https://fbcnnieqieyvzsfipckl.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_8IgPV_lCbhc2E2s07k-NfQ_7oMEoHIC';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentPilot = JSON.parse(sessionStorage.getItem('gt7_logged_pilot')) || null;
 
