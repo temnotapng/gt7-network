@@ -388,7 +388,7 @@
                             <input type="text" id="trackInput" placeholder="Напр: Nürburgring Nordschleife | Gr.3" required>
                             <label>Регламент и условия сессии</label>
                             <textarea id="detailsInput" placeholder="ID комнаты, время старта, тип резины, ограничения по тюнингу..." style="height:110px; resize:none;" required></textarea>
-                            <button type="submit" class="btn-premium">Опубликовать сессию</button>
+                            <button type="submit" class="btn-premium" onclick="playGTClick()">Опубликовать сессию</button>
                         </form>
                     </div>
                     <div class="feed-stack" id="feed"></div>
@@ -419,14 +419,14 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div>
                             <label>Рейтинг пилота (DR)</label>
-                            <select id="drInput"><option value="A+">A+</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
+                            <select id="drInput" onchange="playGTClick()"><option value="A+">A+</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
                         </div>
                         <div>
                             <label>Рейтинг безопасности (SR)</label>
-                            <select id="srInput"><option value="S">S</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select>
+                            <select id="srInput" onchange="playGTClick()"><option value="S">S</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select>
                         </div>
                     </div>
-                    <button type="submit" class="btn-premium" style="margin-top: 10px;">Сохранить изменения</button>
+                    <button type="submit" class="btn-premium">Сохранить изменения</button>
                 </form>
             </div>
         </div>
@@ -502,6 +502,54 @@
     </main>
 
 <script>
+    // СИНТЕЗАТОР ГОНОЧНЫХ SFX ЗВУКОВ (WEB AUDIO API)
+    function playGTClick() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const now = ctx.currentTime;
+            
+            const playNode = (freq, start, duration, vol) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, start);
+                gain.gain.setValueAtTime(vol, start);
+                gain.gain.exponentialRampToValueAtTime(0.00001, start + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(start);
+                osc.stop(start + duration);
+            };
+            // Имитация оригинального двойного клика GT7 UI
+            playNode(1550, now, 0.04, 0.03);
+            playNode(1950, now + 0.02, 0.03, 0.02);
+        } catch(e) { console.log('Audio error:', e); }
+    }
+
+    function playGTSuccess() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const now = ctx.currentTime;
+            
+            const playNode = (freq, start, duration, vol) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle'; // Более мягкий тон
+                osc.frequency.setValueAtTime(freq, start);
+                gain.gain.setValueAtTime(vol, start);
+                gain.gain.exponentialRampToValueAtTime(0.00001, start + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(start);
+                osc.stop(start + duration);
+            };
+            // Восходящий хай-тек аккорд подтверждения операции
+            playNode(880, now, 0.15, 0.04);       
+            playNode(1109.73, now + 0.05, 0.15, 0.04); 
+            playNode(1320, now + 0.10, 0.25, 0.04); 
+        } catch(e) { console.log('Audio error:', e); }
+    }
+
     // СИСТЕМА ЛОГИНА И РЕГИСТРАЦИИ
     let currentPilot = JSON.parse(sessionStorage.getItem('gt7_logged_pilot')) || null;
 
@@ -516,6 +564,7 @@
     }
 
     function toggleAuthMode(showLogin) {
+        playGTClick();
         document.getElementById('loginFormContainer').style.display = showLogin ? 'block' : 'none';
         document.getElementById('registerFormContainer').style.display = showLogin ? 'none' : 'block';
     }
@@ -535,6 +584,8 @@
         localStorage.setItem('gt7_accounts', JSON.stringify(accounts));
         currentPilot = accounts[username.toLowerCase()];
         sessionStorage.setItem('gt7_logged_pilot', JSON.stringify(currentPilot));
+        
+        playGTSuccess();
         alert('Лицензия FIA успешно создана!');
         checkAuth();
     });
@@ -550,11 +601,13 @@
         if (account && account.password === password) {
             currentPilot = account;
             sessionStorage.setItem('gt7_logged_pilot', JSON.stringify(currentPilot));
+            playGTSuccess();
             checkAuth();
         } else { alert('Неверный PSN ID или пароль.'); }
     });
 
     function logout() {
+        playGTClick();
         sessionStorage.removeItem('gt7_logged_pilot');
         currentPilot = null;
         checkAuth();
@@ -562,6 +615,7 @@
 
     // СИСТЕМА ВКЛАДОК
     function switchTab(element, tabId) {
+        playGTClick();
         document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
         element.classList.add('active');
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -594,11 +648,13 @@
         localStorage.setItem('gt7_accounts', JSON.stringify(accounts));
         updateProfileUI();
         renderFeed();
+        playGTSuccess();
         alert('Данные лицензии обновлены.');
     });
 
-    // МОДЕРНИЗИРОВАННАЯ ЛОГИКА MFD КАЛЬКУЛЯТОРА
+    // ЛОГИКА MFD КАЛЬКУЛЯТОРА
     function toggleCalcFields() {
+        playGTClick();
         const mode = document.getElementById('calcRaceMode').value;
         document.getElementById('calcLapsGroup').style.display = mode === 'laps' ? 'block' : 'none';
         document.getElementById('calcTimeGroup').style.display = mode === 'time' ? 'block' : 'none';
@@ -608,7 +664,6 @@
     function calculateStrategy() {
         const mode = document.getElementById('calcRaceMode').value;
         
-        // 1. Расчет общей дистанции
         let totalLaps = 0;
         if (mode === 'laps') {
             totalLaps = parseInt(document.getElementById('calcRaceLaps').value) || 0;
@@ -621,7 +676,6 @@
         }
         if (totalLaps <= 0) return;
 
-        // 2. Расчет Топлива
         const fuelRate = parseFloat(document.getElementById('calcFuelRate').value) || 1;
         const baseFuelPerLap = parseFloat(document.getElementById('calcFuelPerLapPercent').value) || 0;
         const fuelMapVal = document.getElementById('calcFuelMap').value;
@@ -631,20 +685,16 @@
         const actualFuelPerLap = baseFuelPerLap * fuelRate * currentMapMod;
         const lapsPerTank = Math.floor((100 / actualFuelPerLap) * 100) / 100;
 
-        // 3. Расчет Резины (Базовые константы износа GT7 для Gr.3 на круг)
         const baseTireWear = { 'soft': 1.1, 'medium': 0.65, 'hard': 0.35 };
         const selectedCompound = document.getElementById('calcTireCompound').value;
         const tireRate = parseFloat(document.getElementById('calcTireRate').value) || 1;
         
         const actualTireWearPerLap = baseTireWear[selectedCompound] * tireRate;
-        // Считаем, что при 85% износа резина полностью теряет зацеп (критическое состояние в игре)
         const lapsPerTireSet = Math.floor((85 / actualTireWearPerLap) * 100) / 100;
 
-        // 4. Определение лимитирующего гоночного фактора
         const maxLapsPerStint = Math.min(lapsPerTank, lapsPerTireSet);
         const stopsRequired = Math.max(0, Math.ceil(totalLaps / maxLapsPerStint) - 1);
 
-        // Вывод на MFD дисплей
         document.getElementById('resTotalLaps').innerText = totalLaps;
         document.getElementById('resActualPerLap').innerText = (Math.round(actualFuelPerLap * 10) / 10) + '%';
         document.getElementById('resLapsPerTank').innerText = lapsPerTank > totalLaps ? 'Весь заезд' : lapsPerTank + ' кр.';
@@ -652,7 +702,6 @@
         document.getElementById('resLapsPerTires').innerText = lapsPerTireSet > totalLaps ? 'Весь заезд' : lapsPerTireSet + ' кр.';
         document.getElementById('resPitStops').innerText = stopsRequired;
 
-        // Генерация инженерной тактики
         let tipElement = document.getElementById('resStrategyTip');
         if (stopsRequired === 0) {
             tipElement.innerHTML = `Ресурсов бака и прочности шин хватает до финиша. Стратегия <strong style="color:#34d399;">«Без пит-стопов»</strong>. Атакуйте в полную силу на карте FM1.`;
